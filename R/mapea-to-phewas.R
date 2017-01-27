@@ -1,5 +1,4 @@
-# Este programa crea un nuevo fichero con codigos phewas
-#desde la población de individuos originales
+# This script creates a new file with PHEWAS-coded columns from the ICD9 original file
 f="/Users/arturogf/Documents/Unidad\ Innovacion/hyponatremia/pacientes\ -\ 2011\ -\ 2015/siadh-mayor18-transformado.csv"
 mydata=read.csv(f, header=TRUE, sep=";", fileEncoding="UTF-8", as.is = TRUE, check.names = FALSE) 
 

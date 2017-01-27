@@ -1,5 +1,6 @@
 # Este programa crea nuevas filas en el data frame de entrada
 # con aquellas patologías presentes en más del 5 por ciento
+
 f="/Users/arturogf/Documents/Unidad\ Innovacion/hyponatremia/pacientes\ -\ 2011\ -\ 2015/siadh-transformado-phewas.csv"
 mydata=read.csv(f, header=TRUE, sep=";", fileEncoding="UTF-8", as.is = TRUE, check.names = FALSE) 
 
@@ -77,7 +78,10 @@ if (tipo_entrada=="PHEWAS") {
 	tabla<-data.frame(codigos,phewas_desc,percent)
 }
 
-# salida a fichero salida de la tabla de estadisticas de prevalentes
+# It creates a file with info of phewas codes and prevalence percentages, for example:
+#"codigos";"phewas_desc";"percent"
+#"010";"Tuberculosis";3,1866464339909
+#"041.2";"Streptococcus infection";2,42792109256449...
 fout="/Users/arturogf/Documents/Unidad\ Innovacion/hyponatremia/pacientes\ -\ 2011\ -\ 2015/siadh-phewas-prevalentes2.csv"
 write.table(tabla,fout,FALSE,sep=";",row.names = FALSE, fileEncoding = "UTF-8",dec=",")
 
