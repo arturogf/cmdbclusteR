@@ -1,78 +1,86 @@
-# Este programa recibe un fichero de prevalencia y devuelve el mismo fichero con una columna más de cluster
+# This script receives a population file with prevalence info 
+# and returns the same file including a column with the cluster assigned
 
-# cargamos el fichero de funciones auxiliares
-source("/Users/arturogf/Documents/Unidad\ Innovacion/hyponatremia/pacientes\ -\ 2011\ -\ 2015/Henar/funciones.R")
-source("/Users/arturogf/Documents/Unidad\ Innovacion/hyponatremia/pacientes\ -\ 2011\ -\ 2015/Henar/outliers.R")
-source("/Users/arturogf/Documents/Unidad\ Innovacion/hyponatremia/pacientes\ -\ 2011\ -\ 2015/Henar/ordiplot.R")
+# include source files
+source("./funciones.R")
+#source("./outliers.R")
+source("./ordiplot.R")
 
-# Definir numero de clusters 
-num_clusters<-30
-# Definir numero de iteraciones bootstraping
-num_bootstrap<-10
-# Definir threshold de porcentaje intra-cluster que quiero mostrar en las estadisticas finales
+# Define num of clusters
+num_clusters <- 30
+# Define num of bootstraping iterations
+num_bootstrap <- 10
+# Define threshold for intra-cluster contribution that I want to show in final output
 threshold_per_cluster <- 15
 
 #siadh
 #finput="/Users/arturogf/Documents/Unidad\ Innovacion/hyponatremia/pacientes\ -\ 2011\ -\ 2015/siadh-phewas-prevalencia2.csv"
 
 #hipo>18
-finput="/Users/arturogf/Documents/Unidad\ Innovacion/hyponatremia/pacientes\ -\ 2011\ -\ 2015/mayor18-total-phewas-prevalencia.csv"
-mydata=read.csv(finput, header=TRUE, sep=";", fileEncoding="UTF-8", as.is = TRUE, check.names = FALSE) 
+finput = "/Users/arturogf/Documents/Unidad\ Innovacion/hyponatremia/pacientes\ -\ 2011\ -\ 2015/mayor18-total-phewas-prevalencia.csv"
+mydata = read.csv(finput, header=TRUE, sep=";", fileEncoding="UTF-8", as.is = TRUE, check.names = FALSE) 
 
-######################### QUITAMOS LOS INDIVIDUOS QUE NO QUEREMOS ANALIZAR ###############################
-# solo hombres
+######################### Remove individuals that we do not want to analyze ##############################
+# only women
 #mydata <- mydata[ which(mydata[4]=="Mujer"), ]
 
-# los que son hipertensos
+# only hypertensive
 #mydata <- mydata[which(mydata[["401.1"]]==1),]
 ##########################################################################################################
 
-# suponemos que la primera columna con codigos es la siguiente a Dx.Todos
-pos_first_field<-match("Dx.Todos",names(mydata))
+# we suppose that first column with ICD9 separated codes is the following to Dx.Todos
+pos_first_field <- match("Dx.Todos", names(mydata))
 pos_first_field<- pos_first_field + 1
 
-# definimos qué variables no queremos que se contemplen al calcular distancias
+# -------- Define variables that we do not want to consider when calculating distances (similarity) ---------
 
-# en analisis de siadh podemos quitar siadh, hiponatremia, hipertension esencial, diabetes, 
+# e.g. for SIADH, we can remove, hiponatremia, essential hipertension, diabetes, 
 # hiperlipidemia, hipercolesterolemia, tobacco disorder
-codigo_quitar<-c("276.12", "401.1", "250.2", "272.11", "272.1", "318") #"253.7"
+codes_to_drop <- c("276.12", "401.1", "250.2", "272.11", "272.1", "318") #"253.7"
 
-# Nos quedamos con la feature matrix quitando las columnas seleccionadas y las filas todo a cero
-parcial<-subsetPhewasVars(mydata, TRUE, codigo_quitar, pos_first_field)
+# We subset the feature matrix, dropping the selected variables to remove and the rows with all columns==0
+parcial <- subsetPhewasVars(mydata, TRUE, codes_to_drop, pos_first_field)
 
-# Defina el path al fichero de mapeo phewas
-fphewas="/Users/arturogf/Documents/Unidad\ Innovacion/hyponatremia/pacientes\ -\ 2011\ -\ 2015/Henar/PheWAS_code_translation_v1_2-ORIGINAL.txt"
+# -------- define path to PheWAS mapping file ----------
+fphewas = "../data/mappings/PheWAS_code_translation_v1_2-ORIGINAL.txt"
 
-# todas las columnas (11) son de tipo character
-colClasses=c(rep("character",11))
+# all columns (11) are defined of type character
+colClasses = c(rep("character", 11))
 mapeo=read.csv(fphewas, header=TRUE, sep="\t", colClasses=colClasses,fileEncoding="UTF-8", as.is = TRUE, check.names = FALSE)
 
-# contamos el numero de pacientes
-num_patients<-nrow(parcial)
+# we count the number of patients
+num_patients <- nrow(parcial)
 
-mij<-as.matrix(sapply(parcial,as.numeric))
+# convert data frame to numeric matrix
+mij <- as.matrix(sapply(parcial, as.numeric))
 
-# Esta operacion quitará los outliers del data set antes de calcular las distancias
+# This line would remove outliers from data before calculating distances. 
+# It did not work very well with SIADH data.
 #mij<-detectaOutliers(mij)
 
 
-########### Todas las distancias binarias ####################
+########### Calculation of Binary Distances ####################
 
 library(ade4)
 
-d<-list()
+d <- list()
 
 for (i in 1:10)
-  d[[i]]<-dist.binary(mij, method=i)
+  d[[i]] <- dist.binary(mij, method = i)
 
 ################################################################
 
 library(clustsig)
-# Qué medida vamos a usar en esta ejecución
-distance_measure<-d[[2]]
+# ---------- Define which distance measure to use in this execution -------------
+distance_measure <- d[[2]]
+
+# Identify the distance to use in simprof
 d2 <- function(X) ade4::dist.binary(X, method = "2")
-res.single.siadh<-simprof(mij, num.expected=50, num.simulated=49,
-                    method.cluster="single", method.distance=d2,
+
+# --- here we have to define which clustering operations to perform, including method (ward, single, etc.) ---
+# Carry out the similarity profile analysis with 50 bootstrapping iterations
+res.ward.siadh <-simprof(mij, num.expected=500, num.simulated=499,
+                    method.cluster="ward", method.distance=d2,
                     method.transform="identity", alpha=0.05,
                     sample.orientation="row",silent=FALSE, increment=1)
 
@@ -80,15 +88,22 @@ library(fpc)
 library(prabclus)
 library(cluster)
 
-# evaluamos los criterios internos para el número de clusters
-mejor_interno<-vector()
-particiones<-list()
-mejor_interno<-evaluaInternal(num_clusters,distance_measure,num_bootstrap,"ward.D2")
+# With this lines we can evaluate internal ('within') criteria for clusters
+best_within <- vector()
+particiones <- list()
+best_within <-
+  evaluaInternal(num_clusters, distance_measure, num_bootstrap, "ward.D2")
 
-print(paste("Según los criterios within (imprima la variable mejor_interno), el mejor número de cluster es",which(mejor_interno==max(mejor_interno)),sep=" "))
+print(
+  paste(
+    "Según los criterios within (imprima la variable best_within), el mejor número de cluster es",
+    which(best_within == max(best_within)),
+    sep = " "
+  )
+)
 
-
-####################### EJECUTAR HASTA AQUI Y DEFINIR DE NUEVO num_clusters ############################
+####################### The following piece of code was used to compare output with hclust method: needs refactoring! ########################
+####################### Here we stop execution and define again num_clusters, after deciding which num. is best ############################
 
 num_clusters<-3
 
@@ -101,97 +116,114 @@ fstats="/Users/arturogf/Documents/Unidad\ Innovacion/hyponatremia/pacientes\ -\ 
 # Qué medida vamos a usar en esta ejecución
 distance_measure<-d[[2]]
 
-# calculamos el clustering jerárquico con el método X para la matriz de distancia
-hcl5<-hclust(distance_measure,method="ward.D")
+# calculate hierarchical clustering using ward method and hclust function
+hcl5 <- hclust(distance_measure, method = "ward.D")
 
-#pintamos dendograma y cortamos el árbol para 3 clusters que se pintan en rojo
-pdf(pdffile)	
-plot(res.ward1$hclust)
-rect.hclust(res.ward1$hclust, h=2.1, border="red")
+# plot dendogram and red line for cut-off height h
+pdf(pdffile)
+plot(res.ward.siadh$hclust)
+rect.hclust(res.ward.siadh$hclust, h = 2.1, border = "red")
 
-# agrupamos en k clusters
-groups<-cutree(res.ward1$hclust, h=2.1)
+# group cutting tree with height h
+groups <- cutree(res.ward.siadh$hclust, h = 2.1)
 
-#para medir la silhoutte se usa esto.
-sil<-silhouette(groups,distance_measure)
+# measuring silhouette of groups
+sil <- silhouette(groups, distance_measure)
 summary(sil)
 dev.off()
 
+############################################ end refactoring ################################################
 
-num_clusters<-res.ward1$numgroups
+# num_clusters is taken from the output obtained from simprof execution
+num_clusters <- res.ward.siadh$numgroups
 
-salida<-as.data.frame(parcial)
+salida <- as.data.frame(parcial)
 #salida$cluster<-particiones[[num_clusters]]$result$partition
-salida$cluster<-fillSignificant(salida,res.ward1$significantclusters)
-#imprimimos la visualización del cluster
-miplot<-ClusterOrdiPlot(distance_measure,salida$cluster,0)
-#salida$cluster<-groups
-salida$NHC<-mydata[row.names(parcial),"Nº.Historia"]
 
-# Escribimos el fichero con los individuos por cluster con su NHC
+#add new column 'cluster' to salida using a function defined in funciones.R
+salida$cluster <- fillSignificant(salida, res.ward.siadh$significantclusters)
+
+#print ordiplot for cluster visualization
+miplot <- ClusterOrdiPlot(distance_measure, salida$cluster, 0)
+
+#salida$cluster<-groups
+
+# ---- if needed, add the patient record number if needed for exploration -----
+salida$NHC <- mydata[row.names(parcial), "Nº.Historia"]
+
+# We write the file with individuals and cluster assignment plus patient record number
 write.table(salida,fclusters,FALSE,sep=";",row.names = FALSE, fileEncoding = "UTF-8")
 
-# quitamos las dos últimas columnas que tienen datos de pacientes y del cluster
-salida<-salida[,-ncol(salida)]
+#################################################################################
 
-clusters<-list()
-superan<-list()
-statsclusters<-read.table(text = "",col.names = names(salida), as.is = TRUE, check.names = FALSE)
+# we remove the last two columns including the cluster assignment and patient record number
+salida <- salida[, -ncol(salida)]
 
-todos_superan<-vector()
+clusters <- list()
+superan <- list()
+statsclusters <- read.table(text = "",col.names = names(salida), as.is = TRUE, check.names = FALSE)
+
+todos_superan <- vector()
 
 for (i in 1:num_clusters) {
   
-  # escogemos los datos de ese cluster como un data frame
-	clusters[[i]]<-as.data.frame(salida[which(salida$cluster==i),])
+  # select the data for cluster i as a data frame
+  clusters[[i]] <- as.data.frame(salida[which(salida$cluster == i), ])
   
-	#transformar columnas a numerico
-	for(j in c(1,1:ncol(clusters[[i]]))) {
-	     clusters[[i]][,j] <- as.numeric(clusters[[i]][,j])
-	}
+  # transform columns to numeric
+  for (j in c(1, 1:ncol(clusters[[i]]))) {
+    clusters[[i]][, j] <- as.numeric(clusters[[i]][, j])
+  }
 	
-	print(paste("nrows=",toString(nrow(clusters[[i]]),sep = " ")))
+  # print the number of records
+  print(paste("nrows=", toString(nrow(clusters[[i]]), sep = " ")))
+  
+	#clusters[[i]]<-data.frame(salida[salida$cluster==i,],check.names = FALSE)
+	#clusters[[i]]<-sapply(clusters[[i]][clusters[[i]]$cluster==i,],as.integer)
 	
+  # drop the last column with the cluster number and add the Total and Percentage rows at the end
+	clusters[[i]] <- clusters[[i]][, -ncol(clusters[[i]])]
+	clusters[[i]]["Total", 1:ncol(clusters[[i]])] <- colSums(clusters[[i]][, 1:ncol(clusters[[i]])])
+	clusters[[i]]["Porcentaje", 1:ncol(clusters[[i]])] <- clusters[[i]]["Total", 1:ncol(clusters[[i]])] / (nrow(clusters[[i]]) - 1) *100
 	
-  #clusters[[i]]<-data.frame(salida[salida$cluster==i,],check.names = FALSE)
-  #clusters[[i]]<-sapply(clusters[[i]][clusters[[i]]$cluster==i,],as.integer)
-	# quito la última columna con el número de cluster
-	clusters[[i]]<-clusters[[i]][,-ncol(clusters[[i]])]
-	clusters[[i]]["Total",1:ncol(clusters[[i]])]<-colSums(clusters[[i]][,1:ncol(clusters[[i]])])
-	clusters[[i]]["Porcentaje",1:ncol(clusters[[i]])]<-clusters[[i]]["Total",1:ncol(clusters[[i]])]/(nrow(clusters[[i]])-1)*100
-	# guardo los porcentajes de cada cluster para todos los codigos phewas.
-	statsclusters[i+1,1:ncol(clusters[[i]])]<-clusters[[i]]["Porcentaje",1:ncol(clusters[[i]])]
-  # guardo el numero de pacientes en cada cluster
-	statsclusters[i+1,ncol(clusters[[i]])+1]<-nrow(clusters[[i]])-2
-	# miro qué patologías superan un threshold definido intra-cluster y guardo su posición en superan[[i]]
-	superan[[i]]<-vector()
+	# store the percentages for each cluster for all the phewas codes
+	statsclusters[i + 1, 1:ncol(clusters[[i]])] <-clusters[[i]]["Porcentaje", 1:ncol(clusters[[i]])]
+	
+	# store the number of patients in each cluster
+	statsclusters[i + 1, ncol(clusters[[i]]) + 1] <- nrow(clusters[[i]]) - 2
+	
+	# look which pathologies' presence is over intra-cluster threshold and store its position in superan[[i]]
+	superan[[i]] <- vector()
 	for (j in 1:ncol(clusters[[i]])) {
-	  if (statsclusters[i+1,j]>threshold_per_cluster) #guardamos su posicion
-	    superan[[i]]<-c(superan[[i]],j)
+	  if (statsclusters[i + 1, j] > threshold_per_cluster)
+	    superan[[i]] <- c(superan[[i]], j)
 	}
-	# damos nombre a los elementos del vector (named num vector) qué códigos corresponden a las columnas que lo superan
-	names(superan[[i]])<-colnames(parcial)[superan[[i]]]
-	todos_superan<-c(todos_superan,names(superan[[i]]))
-	# actualizamos las celdas remplazando las posiciones con los valores 
+	# give names to superan[[i]] vector elements using the codes from original data and concatenate in vector todos_superan those code names
+	names(superan[[i]]) <- colnames(parcial)[superan[[i]]]
+	todos_superan <- c(todos_superan, names(superan[[i]]))
+	
+	# update cells of superan[[i]] by replacing stored positions with values 
 	for (x in 1:length(superan[[i]])) {
-	  pos<-superan[[i]][x]
-	  superan[[i]][x]<-statsclusters[i+1,pos]
+	  pos <- superan[[i]][x]
+	  superan[[i]][x] <- statsclusters[i + 1, pos]
 	}
 	
-	# ordenamos por las patologías que tienen un porcentaje intra-cluster más alto
-	superan[[i]]<-sort(superan[[i]], decreasing = T)
+	# order superan[[i]] co in decreasing order of intra-cluster contribution
+	superan[[i]] <- sort(superan[[i]], decreasing = T)
 	
-	# inicializamos la columna que albergará la cadena que describe los que superan el threshold
-	statsclusters[i+1,ncol(clusters[[i]])+2]<-""
+	# initialize column that will store description for the codes that are higher than defined threshold
+	statsclusters[i + 1, ncol(clusters[[i]]) + 2] <- ""
 	
-	# volvemos a actualizar las celdas precediéndolas con el significado del código phewas 
+	# we update superan[i] cells again, preceeding them with each phewas code description
 	for (x in 1:length(superan[[i]])) {
-	  pos<-superan[[i]][x]
-	  superan[[i]][x]<-paste(mapeo[which(mapeo[["phewas_code"]]==names(superan[[i]][x])),"phewas_string"][1], 
-	                         as.character(round(as.numeric(superan[[i]][x]),2)), 
-	                         sep = " (")
-	  superan[[i]][x]<-paste(superan[[i]][x],")",sep = "")
-	  # concatenamos cada significado phewas de los que superen el threshold
+	  pos <- superan[[i]][x]
+	  superan[[i]][x] <-
+	    paste(mapeo[which(mapeo[["phewas_code"]] == names(superan[[i]][x])), "phewas_string"][1],
+	          as.character(round(as.numeric(superan[[i]][x]), 2)),
+	          sep = " (")
+	  superan[[i]][x] <- paste(superan[[i]][x], ")", sep = "")
+	  
+	  # concatenate each phewas description for all codes that are higher than threshold 
 	  statsclusters[i+1,ncol(clusters[[i]])+2]<-paste(statsclusters[i+1,ncol(clusters[[i]])+2],superan[[i]][x], sep=" | ")
 	}
 }
@@ -200,7 +232,7 @@ for (i in 1:num_clusters) {
 #for (i in 1:ncol(clusters[[2]]))
 #  statsclusters[1,i]<-mapeo[which(mapeo[["phewas_code"]]==colnames(statsclusters)[i]),"phewas_string"][1]             
 
-# Escribimos el fichero con las estadísticas por cluster
+# We write the file with all the statitics per cluster
 write.table(statsclusters,fstats,FALSE,sep=";",row.names = FALSE, fileEncoding = "UTF-8",dec=",")
 
 
