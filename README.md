@@ -3,6 +3,8 @@ Some R scripts for clustering patient data from patient discharge data from Spai
 
 The code would need to be refactored properly with functions.  Scripts usually takes a file as input and create new files as output, with a proper workflow that takes from the original CMBD file to the output csv file with the clustering results.
 
+Note: Please execute checkPackages.R first time you try to run cmbdclusteR.
+
 The scientific workflow works as follows (ordered by sequence):
 
 - transforma.R -> input the base CSV file with ICD9 and outputs a feature matrix file with separated ICD9-columns
