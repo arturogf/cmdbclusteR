@@ -2,9 +2,9 @@
 # and returns the same file including a column with the cluster assigned
 
 # include source files
-source("./funciones.R")
+source("/Users/arturogf/cmdbclusteR/R/funciones.R")
 #source("./outliers.R")
-source("./ordiplot.R")
+source("/Users/arturogf/cmdbclusteR/R/ordiplot.R")
 
 # Define num of clusters
 num_clusters <- 30
@@ -33,7 +33,7 @@ pos_first_field<- pos_first_field + 1
 
 # e.g. for SIADH, we can remove, hiponatremia, essential hipertension, diabetes, 
 # hiperlipidemia, hipercolesterolemia, tobacco disorder
-codes_to_drop <- c("276.12", "401.1", "250.2", "272.11", "272.1", "318") #"253.7"
+codes_to_drop <- c("276.12", "401.1", "250.2", "272.11", "272.1", "318", "253.7")
 
 # We subset the feature matrix, dropping the selected variables to remove and the rows with all columns==0
 parcial <- subsetPhewasVars(mydata, TRUE, codes_to_drop, pos_first_field)
@@ -77,7 +77,7 @@ d2 <- function(X) ade4::dist.binary(X, method = "2")
 # --- here we have to define which clustering operations to perform, including method (ward, single, etc.) ---
 # Carry out the similarity profile analysis with 50 bootstrapping iterations
 res.ward.siadh <-simprof(mij, num.expected=500, num.simulated=499,
-                    method.cluster="ward", method.distance=d2,
+                    method.cluster="ward.D", method.distance=d2,
                     method.transform="identity", alpha=0.05,
                     sample.orientation="row",silent=FALSE, increment=1)
 

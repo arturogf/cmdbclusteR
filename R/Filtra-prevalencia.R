@@ -2,7 +2,7 @@
 # present in more than a threshold prevalence for our population
 
 # -------------- define file input --------------
-f = "/Users/arturogf/cmdbclusteR/data/processed/siadh-transformado-phewas.csv"
+f = "/Users/arturogf/cmdbclusteR/data/processed/siadh-mayor18-transformado-phewas.csv"
 mydata = read.csv(f, header=TRUE, sep=";", fileEncoding="UTF-8", as.is = TRUE, check.names = FALSE) 
 
 # -------------- define path to PHEWAS mapping file --------------
