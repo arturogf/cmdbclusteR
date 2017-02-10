@@ -20,9 +20,9 @@
 # Files must be in UTF-8 encoding, UNIX (LF)
 #f<- file.choose()
 # -------------- define file input --------------
-f="/Users/arturogf/Documents/Unidad\ Innovacion/hyponatremia/pacientes\ -\ 2011\ -\ 2015/Hiponatremia-SIADH-FechaNac.csv"
+f="/Users/arturogf/cmdbclusteR/data/original/Hiponatremia-SIADH-FechaNac.csv"
 # -------------- define file output --------------
-fout="/Users/arturogf/Documents/Unidad\ Innovacion/hyponatremia/pacientes\ -\ 2011\ -\ 2015/siadh-mayor18-transformado.csv"
+fout="/Users/arturogf/cmdbclusteR/data/processed/siadh-mayor18-transformado.csv"
 
 # Read data separated by ';' by default when exporting from excel
 mydata=read.csv(f, header=TRUE, sep=";", fileEncoding="UTF-8", as.is = TRUE) 

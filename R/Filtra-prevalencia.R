@@ -2,17 +2,17 @@
 # present in more than a threshold prevalence for our population
 
 # -------------- define file input --------------
-f = "/Users/arturogf/Documents/Unidad\ Innovacion/hyponatremia/pacientes\ -\ 2011\ -\ 2015/siadh-transformado-phewas.csv"
+f = "/Users/arturogf/cmdbclusteR/data/processed/siadh-transformado-phewas.csv"
 mydata = read.csv(f, header=TRUE, sep=";", fileEncoding="UTF-8", as.is = TRUE, check.names = FALSE) 
 
 # -------------- define path to PHEWAS mapping file --------------
-fphewas = "../data/mappings/PheWAS_code_translation_v1_2-ORIGINAL.txt"
+fphewas = "/Users/arturogf/cmdbclusteR/data/mappings/PheWAS_code_translation_v1_2-ORIGINAL.txt"
 
 # -------------- define file output for descriptive prevalence phewas information --------------
-fphewasprev = "/Users/arturogf/Documents/Unidad\ Innovacion/hyponatremia/pacientes\ -\ 2011\ -\ 2015/siadh-phewas-prevalentes2.csv"
+fphewasprev = "/Users/arturogf/cmdbclusteR/data/processed/siadh-phewas-prevalentes2.csv"
 
 # -------------- define file output with prevalence calculations --------------
-fout = "/Users/arturogf/Documents/Unidad\ Innovacion/hyponatremia/pacientes\ -\ 2011\ -\ 2015/siadh-phewas-prevalencia2.csv"
+fout = "/Users/arturogf/cmdbclusteR/data/processed/siadh-phewas-prevalencia2.csv"
 
 # all columns (11) are defined of type character
 colClasses = c(rep("character",11))

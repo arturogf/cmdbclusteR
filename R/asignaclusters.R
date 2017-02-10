@@ -13,11 +13,8 @@ num_bootstrap <- 10
 # Define threshold for intra-cluster contribution that I want to show in final output
 threshold_per_cluster <- 15
 
-#siadh
-#finput="/Users/arturogf/Documents/Unidad\ Innovacion/hyponatremia/pacientes\ -\ 2011\ -\ 2015/siadh-phewas-prevalencia2.csv"
-
-#hipo>18
-finput = "/Users/arturogf/Documents/Unidad\ Innovacion/hyponatremia/pacientes\ -\ 2011\ -\ 2015/mayor18-total-phewas-prevalencia.csv"
+#siadh with prevalence information
+finput="/Users/arturogf/cmdbclusteR/data/processed/siadh-phewas-prevalencia2.csv"
 mydata = read.csv(finput, header=TRUE, sep=";", fileEncoding="UTF-8", as.is = TRUE, check.names = FALSE) 
 
 ######################### Remove individuals that we do not want to analyze ##############################
@@ -42,7 +39,7 @@ codes_to_drop <- c("276.12", "401.1", "250.2", "272.11", "272.1", "318") #"253.7
 parcial <- subsetPhewasVars(mydata, TRUE, codes_to_drop, pos_first_field)
 
 # -------- define path to PheWAS mapping file ----------
-fphewas = "../data/mappings/PheWAS_code_translation_v1_2-ORIGINAL.txt"
+fphewas = "/Users/arturogf/cmdbclusteR/data/mappings/PheWAS_code_translation_v1_2-ORIGINAL.txt"
 
 # all columns (11) are defined of type character
 colClasses = c(rep("character", 11))
@@ -107,9 +104,9 @@ print(
 
 num_clusters<-3
 
-pdffile="/Users/arturogf/Documents/Unidad\ Innovacion/hyponatremia/pacientes\ -\ 2011\ -\ 2015/hombres-mayores18-simprof100-phewas-d2-wardD.pdf"
-fclusters="/Users/arturogf/Documents/Unidad\ Innovacion/hyponatremia/pacientes\ -\ 2011\ -\ 2015/hombres-k15-phewas-d2-wardD.csv"
-fstats="/Users/arturogf/Documents/Unidad\ Innovacion/hyponatremia/pacientes\ -\ 2011\ -\ 2015/stats-cluster-hombres-k15-phewas-d2-wardD.csv"
+pdffile="/Users/arturogf/cmdbclusteR/data/output/hombres-mayores18-simprof100-phewas-d2-wardD.pdf"
+fclusters="/Users/arturogf/cmdbclusteR/data/output/hombres-k15-phewas-d2-wardD.csv"
+fstats="/Users/arturogf/cmdbclusteR/data/output/stats-cluster-hombres-k15-phewas-d2-wardD.csv"
 
 #external_crit<-evaluaExternal(particiones[[num_clusters]]$result$partition, d, num_clusters, "ward.D")
 

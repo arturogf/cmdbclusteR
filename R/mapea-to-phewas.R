@@ -1,17 +1,17 @@
 # This script creates a new file with PHEWAS-coded columns as mapped from the ICD9-coded original file
 
 # -------------- define path to PHEWAS mapping file --------------
-fphewas="../data/mappings/PheWAS_code_translation_v1_2-ORIGINAL.txt"
+fphewas="/Users/arturogf/cmdbclusteR/data/mappings/PheWAS_code_translation_v1_2-ORIGINAL.txt"
 # indicate that all columns (11) are of type character 
 colClasses=c(rep("character",11))
 mapeo=read.csv(fphewas, header=TRUE, sep="\t", colClasses=colClasses,fileEncoding="UTF-8", as.is = TRUE, check.names = FALSE) 
 
 # -------------- define file input --------------
-f="/Users/arturogf/Documents/Unidad\ Innovacion/hyponatremia/pacientes\ -\ 2011\ -\ 2015/siadh-mayor18-transformado.csv"
+f="/Users/arturogf/cmdbclusteR/data/processed/siadh-mayor18-transformado.csv"
 mydata=read.csv(f, header=TRUE, sep=";", fileEncoding="UTF-8", as.is = TRUE, check.names = FALSE) 
 
 # -------------- define file output --------------
-fout="/Users/arturogf/Documents/Unidad\ Innovacion/hyponatremia/pacientes\ -\ 2011\ -\ 2015/siadh-mayor18-transformado-phewas.csv"
+fout="/Users/arturogf/cmdbclusteR/data/processed/siadh-mayor18-transformado-phewas.csv"
 
 # we suppose that first column with ICD9 separated codes is the following to Dx.Todos
 pos_first_icd9 <- match("Dx.Todos", names(mydata))
