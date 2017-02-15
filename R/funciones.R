@@ -1,12 +1,10 @@
-###
 #' This function subset and filter the columns indicated as well as rows with zero values
 #' @param mydata this is a dataframe containing a cmbd file plus feature matrix of phewas
 #' @param nozero this indicates if I want to remove rows with no patology at all
 #' @param quitar_codigos a vector of variables not to be considered in the distance function
 #' @param post_first_field the column that has the first Phewas code
 #' @return parcial the filtered dataframe
-subsetPhewasVars<-function(mydata,nozero=TRUE,quitar_codigos, pos_first_field)
-{
+subsetPhewasVars<-function(mydata,nozero=TRUE,quitar_codigos, pos_first_field) {
   # seleccionamos el subconjunto de las variables icd9
   parcial<-mydata[1:(nrow(mydata)-3),pos_first_field:ncol(mydata)]
   

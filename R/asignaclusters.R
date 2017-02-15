@@ -26,8 +26,7 @@ mydata = read.csv(finput, header=TRUE, sep=";", fileEncoding="UTF-8", as.is = TR
 ##########################################################################################################
 
 # we suppose that first column with ICD9 separated codes is the following to Dx.Todos
-pos_first_field <- match("Dx.Todos", names(mydata))
-pos_first_field<- pos_first_field + 1
+pos_first_field <- match("Dx.Todos", names(mydata))+1
 
 # -------- Define variables that we do not want to consider when calculating distances (similarity) ---------
 
@@ -79,57 +78,22 @@ d2 <- function(X) ade4::dist.binary(X, method = "2")
 res.ward.siadh <-simprof(mij, num.expected=500, num.simulated=499,
                     method.cluster="ward.D", method.distance=d2,
                     method.transform="identity", alpha=0.05,
-                    sample.orientation="row",silent=FALSE, increment=1)
+                    sample.orientation="row",silent=FALSE, increment=10)
 
 library(fpc)
 library(prabclus)
 library(cluster)
 
-# With this lines we can evaluate internal ('within') criteria for clusters
-best_within <- vector()
-particiones <- list()
-best_within <-
-  evaluaInternal(num_clusters, distance_measure, num_bootstrap, "ward.D2")
-
-print(
-  paste(
-    "Según los criterios within (imprima la variable best_within), el mejor número de cluster es",
-    which(best_within == max(best_within)),
-    sep = " "
-  )
-)
-
-####################### The following piece of code was used to compare output with hclust method: needs refactoring! ########################
-####################### Here we stop execution and define again num_clusters, after deciding which num. is best ############################
-
-num_clusters<-3
-
-pdffile="/Users/arturogf/cmdbclusteR/data/output/hombres-mayores18-simprof100-phewas-d2-wardD.pdf"
-fclusters="/Users/arturogf/cmdbclusteR/data/output/hombres-k15-phewas-d2-wardD.csv"
-fstats="/Users/arturogf/cmdbclusteR/data/output/stats-cluster-hombres-k15-phewas-d2-wardD.csv"
-
-#external_crit<-evaluaExternal(particiones[[num_clusters]]$result$partition, d, num_clusters, "ward.D")
-
-# Qué medida vamos a usar en esta ejecución
-distance_measure<-d[[2]]
-
-# calculate hierarchical clustering using ward method and hclust function
-hcl5 <- hclust(distance_measure, method = "ward.D")
+# -------- define output files --------
+pdffile="/Users/arturogf/cmdbclusteR/data/output/mayores18-simprof1000-phewas-d2-wardD.pdf"
+ordifile="/Users/arturogf/cmdbclusteR/data/output/ordiplot-mayores18-simprof100-phewas-d2-wardD.pdf"
+fclusters="/Users/arturogf/cmdbclusteR/data/output/k15-phewas-d2-wardD.csv"
+fstats="/Users/arturogf/cmdbclusteR/data/output/stats-simprof1000-cluster-k15-phewas-d2-wardD.csv"
 
 # plot dendogram and red line for cut-off height h
 pdf(pdffile)
-plot(res.ward.siadh$hclust)
-rect.hclust(res.ward.siadh$hclust, h = 2.1, border = "red")
-
-# group cutting tree with height h
-groups <- cutree(res.ward.siadh$hclust, h = 2.1)
-
-# measuring silhouette of groups
-sil <- silhouette(groups, distance_measure)
-summary(sil)
+simprof.plot(res.ward.siadh)
 dev.off()
-
-############################################ end refactoring ################################################
 
 # num_clusters is taken from the output obtained from simprof execution
 num_clusters <- res.ward.siadh$numgroups
@@ -141,8 +105,9 @@ salida <- as.data.frame(parcial)
 salida$cluster <- fillSignificant(salida, res.ward.siadh$significantclusters)
 
 #print ordiplot for cluster visualization
+pdf(ordifile)
 miplot <- ClusterOrdiPlot(distance_measure, salida$cluster, 0)
-
+dev.off()
 #salida$cluster<-groups
 
 # ---- if needed, add the patient record number if needed for exploration -----
@@ -153,14 +118,12 @@ write.table(salida,fclusters,FALSE,sep=";",row.names = FALSE, fileEncoding = "UT
 
 #################################################################################
 
-# we remove the last two columns including the cluster assignment and patient record number
+# we remove the patient record number from last column
 salida <- salida[, -ncol(salida)]
 
 clusters <- list()
 superan <- list()
 statsclusters <- read.table(text = "",col.names = names(salida), as.is = TRUE, check.names = FALSE)
-
-todos_superan <- vector()
 
 for (i in 1:num_clusters) {
   
@@ -195,10 +158,9 @@ for (i in 1:num_clusters) {
 	  if (statsclusters[i + 1, j] > threshold_per_cluster)
 	    superan[[i]] <- c(superan[[i]], j)
 	}
-	# give names to superan[[i]] vector elements using the codes from original data and concatenate in vector todos_superan those code names
+	# give names to superan[[i]] vector elements using the codes from original data 
 	names(superan[[i]]) <- colnames(parcial)[superan[[i]]]
-	todos_superan <- c(todos_superan, names(superan[[i]]))
-	
+
 	# update cells of superan[[i]] by replacing stored positions with values 
 	for (x in 1:length(superan[[i]])) {
 	  pos <- superan[[i]][x]

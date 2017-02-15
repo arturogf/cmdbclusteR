@@ -1,6 +1,9 @@
 # This script create new rows in the input data frame with those diagnoses 
 # present in more than a threshold prevalence for our population
 
+# -------------- Define if the input data has been already mapped to PHEWAS --------------
+input_type <- "PHEWAS" # In this case, no need to do mapping again
+
 # -------------- define file input --------------
 f = "/Users/arturogf/cmdbclusteR/data/processed/siadh-mayor18-transformado-phewas.csv"
 mydata = read.csv(f, header=TRUE, sep=";", fileEncoding="UTF-8", as.is = TRUE, check.names = FALSE) 
@@ -25,36 +28,35 @@ mapeo = read.csv(fphewas, header=TRUE, sep="\t", colClasses=colClasses,fileEncod
 # -------------- Define the prevalence threshold (percentage) --------------
 threshold_prev <- 2
 
-# -------------- Define if the input data has been already mapped to PHEWAS --------------
-input_type <- "PHEWAS" # In this case, no need to do mapping again
-num_patients <- nrow(mydata)
+num_episodes <- nrow(mydata)
 
 # we suppose that first column with ICD9 separated codes is the following to Dx.Todos
-pos_first_icd9 <- match("Dx.Todos", names(mydata))
-pos_first_icd9 <- pos_first_icd9 + 1
+pos_first_phewas <- match("Dx.Todos", names(mydata)) + 1
 
 # We add new row for total number of ocurrences (Total)
-mydata["Total", pos_first_icd9:ncol(mydata)] <-
-  colSums(mydata[, pos_first_icd9:ncol(mydata)])
+mydata["Total", pos_first_phewas:ncol(mydata)] <-
+  colSums(mydata[, pos_first_phewas:ncol(mydata)])
 # We add new row for prevalence percentage (Porcentaje)
-mydata["Porcentaje", pos_first_icd9:ncol(mydata)] <-
-  mydata["Total", pos_first_icd9:ncol(mydata)] / num_patients * 100
+mydata["Porcentaje", pos_first_phewas:ncol(mydata)] <-
+  mydata["Total", pos_first_phewas:ncol(mydata)] / num_episodes * 100
 # We add a new row indicating if is prevalent (Prevalente)
-mydata["Prevalente", pos_first_icd9:ncol(mydata)] <-
-  (mydata["Porcentaje", pos_first_icd9:ncol(mydata)] >= threshold_prev)
+mydata["Prevalente", pos_first_phewas:ncol(mydata)] <-
+  (mydata["Porcentaje", pos_first_phewas:ncol(mydata)] >= threshold_prev)
 
 # we create a filter vector for the columns (numbers) that are prevalent
 filter <- integer()
-for (i in pos_first_icd9:ncol(mydata))
+for (i in pos_first_phewas:ncol(mydata))
   if (mydata["Prevalente", i] == 1)
     filter <- c(filter, i)
 
+#-- check if we can avoid creating a new dataframe 'prevalentes' --
+
 # those prevalent columns are merged with the patient/episode data into a new data frame 'prevalentes'
 prevalentes <- mydata[, filter]
-prevalentes <- cbind(mydata[, 1:pos_first_icd9 - 1], prevalentes)
+prevalentes <- cbind(mydata[, 1:pos_first_phewas - 1], prevalentes)
 
 # vector with the prevalent code names
-codigos <- colnames(prevalentes[, pos_first_icd9:ncol(prevalentes)])
+codigos <- colnames(prevalentes[, pos_first_phewas:ncol(prevalentes)])
 
 # these vectors are used to create a descriptive output table of prevalent phewas-encoded diagnoses
 desc <- vector()

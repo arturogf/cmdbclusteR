@@ -24,6 +24,7 @@ phewas_codes <- vector()
 # for each icd9 code we look up the phewas mapping table (column 3 is the phewas code) 
 for (i in icd9_codes) {
   pos <- which(mapeo$icd9 == i)
+  #--look for better method to check the following condition--
   if (length(pos) != 0) {
     newcode <- mapeo[pos, 3]
     # If not present already, we add the phewas code to the phewas_codes vector
@@ -50,7 +51,7 @@ for (l in 1:nrow(mydata)) {
     h <- substring(d, 2)
     pos <- which(mapeo$icd9 == h)
     # we fill the column for the phewas code as mapped from the icd9 at pos
-    if (length(pos) != 0)
+    if (length(pos) != 0) 
       dataph[l, mapeo[pos, 3]] <- 1
     else
       if (!(h %in% nomapeo))
@@ -62,6 +63,8 @@ for (l in 1:nrow(mydata)) {
 for (i in nomapeo)
   print(paste("INFO: There was no PheWAS mapping for ICD-9 code", i, sep =" "))
 
+#--in this case we can avoid the mycopy by combining mydata+dataph and remove the icd-9 separate columns--
+
 # we do a copy of the first columns before the icd9 codes 
 pos_first_icd9 <- match("Dx.Todos", names(mydata))
 mycopy <- mydata[, c(1:pos_first_icd9)]
@@ -71,3 +74,7 @@ mezcla <- cbind(mycopy,dataph)
 
 # we write the output of phewas mapping to a defined file
 write.table(mezcla,fout,FALSE,sep=";",row.names = FALSE, fileEncoding = "UTF-8",dec=",")
+
+#-- remove variables that have been used, possibly using ls() (look ?remove) --
+remove(dataph)
+remove(mapeo)
