@@ -85,10 +85,10 @@ library(prabclus)
 library(cluster)
 
 # -------- define output files --------
-pdffile="/Users/arturogf/cmdbclusteR/data/output/mayores18-simprof1000-phewas-d2-wardD.pdf"
-ordifile="/Users/arturogf/cmdbclusteR/data/output/ordiplot-mayores18-simprof100-phewas-d2-wardD.pdf"
-fclusters="/Users/arturogf/cmdbclusteR/data/output/k15-phewas-d2-wardD.csv"
-fstats="/Users/arturogf/cmdbclusteR/data/output/stats-simprof1000-cluster-k15-phewas-d2-wardD.csv"
+pdffile="/Users/arturogf/cmdbclusteR/data/output/mayores18-simprof500-phewas-d2-wardD.pdf"
+ordifile="/Users/arturogf/cmdbclusteR/data/output/ordiplot-mayores18-simprof500-phewas-d2-wardD.pdf"
+fclusters="/Users/arturogf/cmdbclusteR/data/output/simprof500-phewas-d2-wardD.csv"
+fstats="/Users/arturogf/cmdbclusteR/data/output/stats-simprof500-cluster-phewas-d2-wardD.csv"
 
 # plot dendogram and red line for cut-off height h
 pdf(pdffile)
