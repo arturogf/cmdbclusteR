@@ -3,8 +3,12 @@
 
 # include source files
 source("/Users/arturogf/cmdbclusteR/R/funciones.R")
-#source("./outliers.R")
 source("/Users/arturogf/cmdbclusteR/R/ordiplot.R")
+
+input_type<-"ICD9-4"
+
+# define column number where patient ID is stored in original mydata
+col_patientID<-1
 
 # Define num of clusters
 num_clusters <- 30
@@ -16,14 +20,6 @@ threshold_per_cluster <- 15
 #siadh with prevalence information
 finput="/Users/arturogf/cmdbclusteR/data/processed/siadh-phewas-prevalencia2.csv"
 mydata = read.csv(finput, header=TRUE, sep=";", fileEncoding="UTF-8", as.is = TRUE, check.names = FALSE) 
-
-######################### Remove individuals that we do not want to analyze ##############################
-# only women
-#mydata <- mydata[ which(mydata[4]=="Mujer"), ]
-
-# only hypertensive
-#mydata <- mydata[which(mydata[["401.1"]]==1),]
-##########################################################################################################
 
 # we suppose that first column with ICD9 separated codes is the following to Dx.Todos
 pos_first_field <- match("Dx.Todos", names(mydata))+1
@@ -111,7 +107,7 @@ dev.off()
 #salida$cluster<-groups
 
 # ---- if needed, add the patient record number if needed for exploration -----
-salida$NHC <- mydata[row.names(parcial), "Nº.Historia"]
+salida$NHC <- mydata[row.names(parcial), col_patientID]
 
 # We write the file with individuals and cluster assignment plus patient record number
 write.table(salida,fclusters,FALSE,sep=";",row.names = FALSE, fileEncoding = "UTF-8")
@@ -172,18 +168,34 @@ for (i in 1:num_clusters) {
 	
 	# initialize column that will store description for the codes that are higher than defined threshold
 	statsclusters[i + 1, ncol(clusters[[i]]) + 2] <- ""
-	
-	# we update superan[i] cells again, preceeding them with each phewas code description
-	for (x in 1:length(superan[[i]])) {
-	  pos <- superan[[i]][x]
-	  superan[[i]][x] <-
-	    paste(mapeo[which(mapeo[["phewas_code"]] == names(superan[[i]][x])), "phewas_string"][1],
-	          as.character(round(as.numeric(superan[[i]][x]), 2)),
-	          sep = " (")
-	  superan[[i]][x] <- paste(superan[[i]][x], ")", sep = "")
-	  
-	  # concatenate each phewas description for all codes that are higher than threshold 
-	  statsclusters[i+1,ncol(clusters[[i]])+2]<-paste(statsclusters[i+1,ncol(clusters[[i]])+2],superan[[i]][x], sep=" | ")
+
+	if (input_type=="PHEWAS"){
+	  # we update superan[i] cells again, preceeding them with each phewas code description
+	  for (x in 1:length(superan[[i]])) {
+	    pos <- superan[[i]][x]
+	    superan[[i]][x] <-
+	      paste(mapeo[which(mapeo[["phewas_code"]] == names(superan[[i]][x])), "phewas_string"][1],
+	            as.character(round(as.numeric(superan[[i]][x]), 2)),
+	            sep = " (")
+	    superan[[i]][x] <- paste(superan[[i]][x], ")", sep = "")
+	    
+	    # concatenate each phewas description for all codes that are higher than threshold 
+	    statsclusters[i+1,ncol(clusters[[i]])+2]<-paste(statsclusters[i+1,ncol(clusters[[i]])+2],superan[[i]][x], sep=" | ")
+	  }
+	}
+	else {
+	  # we update superan[i] cells again, preceeding them with each phewas code description
+	  for (x in 1:length(superan[[i]])) {
+	    pos <- superan[[i]][x]
+	    superan[[i]][x] <-
+	      paste(mapeo[which(mapeo[["icd9"]] == names(superan[[i]][x])), "icd9_string"][1],
+	            as.character(round(as.numeric(superan[[i]][x]), 2)),
+	            sep = " (")
+	    superan[[i]][x] <- paste(superan[[i]][x], ")", sep = "")
+	    
+	    # concatenate each phewas description for all codes that are higher than threshold 
+	    statsclusters[i+1,ncol(clusters[[i]])+2]<-paste(statsclusters[i+1,ncol(clusters[[i]])+2],superan[[i]][x], sep=" | ")
+	  }
 	}
 }
 
