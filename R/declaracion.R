@@ -12,9 +12,15 @@ pos_numeroHC <- as.numeric(readLines(n=1, ok=FALSE))
 print("Number of column that hosts the ICD9 codes:")
 pos_ICD9 <- as.numeric(readLines(n=1, ok=FALSE))
 
+# Define the number of column that hosts the entry date
+print("Number of column that hosts patients' entry date:")
+pos_entry <- as.numeric(readLines(n=1, ok=FALSE))
+mydata[,pos_entry] <- gsub("/", "-", mydata[,pos_entry])
+
 # Define the number of column that hosts the discharge date
 print("Number of column that hosts patients' discharge date:")
 pos_discharge <- as.numeric(readLines(n=1, ok=FALSE))
+mydata[,pos_discharge] <- gsub("/", "-", mydata[,pos_discharge])
 
 # Define the number of column that hosts patients' age
 print("Number of column that hosts patients' ages (write 0 if there is no such column):")
@@ -22,19 +28,23 @@ pos_age <- as.numeric(readLines(n=1, ok=FALSE))
 if(pos_age==0){
   print("Number of column that hosts patients' dates of birth:")
   pos_birthdate <- as.numeric(readLines(n=1, ok=FALSE))
-  mydata[,pos_discharge] <- gsub("/", "-", mydata[,pos_discharge])
   mydata[,pos_birthdate] <- gsub("/", "-", mydata[,pos_birthdate])
-  mydata[,ncol(mydata)+1] <- round(as.numeric(as.Date(mydata[[pos_discharge]], "%d-%m-%Y")-as.Date(mydata[[pos_birthdate]], "%d-%m-%Y"))/365)
+  # Create new column with patients' ages
+  mydata$Edad <- round(as.numeric(as.Date(mydata[[pos_discharge]], "%d-%m-%Y")-as.Date(mydata[[pos_birthdate]], "%d-%m-%Y"))/365)
   pos_age <- ncol(mydata)
 }
-# Define the number of column that hosts patients' age
+# Define the number of column that hosts patients' gender
 print("Number of column that hosts patients' gender:")
 pos_gender <- as.numeric(readLines(n=1, ok=FALSE))
+
+# Create new column with patient's stay in days
+mydata$Estancia <- round(as.numeric(as.Date(mydata[[pos_discharge]], "%d-%m-%Y")-as.Date(mydata[[pos_entry]], "%d-%m-%Y")))
+pos_stay <- ncol(mydata)
 
 # Add any kind of filtering that we want on the data, e.g. age > 18
 print("Choose an age filter: write L for LESS THAN, H for HIGHER THAN or B for BETWEEN:")
 intervalo <- readLines(n=1, ok=FALSE)
-  if(intervalo == "L"){
+if(intervalo == "L"){
   print("Choose top threshold:")
   umbral <- as.numeric(readLines(n=1, ok=FALSE))
   mydata <- mydata[ which(mydata[[pos_age]]<umbral), ]
@@ -68,7 +78,10 @@ if(gender == "M"){
   genderfilter <- "both"
 }
 
-# or only does that present some diagnose, e. g. SIADH
+# or only does that present some diagnose, e. g. humour disorder
 mydata <- mydata[grep("296", mydata[[pos_ICD9]], invert = FALSE),]
 diagnosefilter <- "humour"
-#253.6
+
+#SIADH ICD9: 253.6
+#mydata <- mydata[grep("253.6", mydata[[pos_ICD9]], invert = FALSE),]
+#diagnosefilter <- "siadh"
