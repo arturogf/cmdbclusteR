@@ -1,0 +1,74 @@
+# -------------- define file input --------------
+print("A window will pop up to select data input file.")
+f <- tk_choose.files(default = "", caption = "Select data input file", multi = FALSE)
+# Read data separated by the sign specified by the user
+mydata = read.csv(f, header=TRUE, sep=";", as.is = TRUE) 
+
+# Define the number of column that hosts the patient ID / NHC
+print("Number of column that hosts the NHC:")
+pos_numeroHC <- as.numeric(readLines(n=1, ok=FALSE))
+
+# Define the number of column that hosts the ICD9 codes
+print("Number of column that hosts the ICD9 codes:")
+pos_ICD9 <- as.numeric(readLines(n=1, ok=FALSE))
+
+# Define the number of column that hosts the discharge date
+print("Number of column that hosts patients' discharge date:")
+pos_discharge <- as.numeric(readLines(n=1, ok=FALSE))
+
+# Define the number of column that hosts patients' age
+print("Number of column that hosts patients' ages (write 0 if there is no such column):")
+pos_age <- as.numeric(readLines(n=1, ok=FALSE))
+if(pos_age==0){
+  print("Number of column that hosts patients' dates of birth:")
+  pos_birthdate <- as.numeric(readLines(n=1, ok=FALSE))
+  mydata[,pos_discharge] <- gsub("/", "-", mydata[,pos_discharge])
+  mydata[,pos_birthdate] <- gsub("/", "-", mydata[,pos_birthdate])
+  mydata[,ncol(mydata)+1] <- round(as.numeric(as.Date(mydata[[pos_discharge]], "%d-%m-%Y")-as.Date(mydata[[pos_birthdate]], "%d-%m-%Y"))/365)
+  pos_age <- ncol(mydata)
+}
+# Define the number of column that hosts patients' age
+print("Number of column that hosts patients' gender:")
+pos_gender <- as.numeric(readLines(n=1, ok=FALSE))
+
+# Add any kind of filtering that we want on the data, e.g. age > 18
+print("Choose an age filter: write L for LESS THAN, H for HIGHER THAN or B for BETWEEN:")
+intervalo <- readLines(n=1, ok=FALSE)
+  if(intervalo == "L"){
+  print("Choose top threshold:")
+  umbral <- as.numeric(readLines(n=1, ok=FALSE))
+  mydata <- mydata[ which(mydata[[pos_age]]<umbral), ]
+  agefilter <- paste("lessthan", umbral, sep="")
+}else if(intervalo == "H"){
+  print("Choose down threshold:")
+  umbral <- as.numeric(readLines(n=1, ok=FALSE))
+  mydata <- mydata[ which(mydata[[pos_age]]>umbral), ]
+  agefilter <- paste("higherthan", umbral, sep="")
+}else if(intervalo == "B"){
+  print("Choose down threshold:")
+  umbral1 <- as.numeric(readLines(n=1, ok=FALSE))
+  print("Choose up threshold:")
+  umbral2 <- as.numeric(readLines(n=1, ok=FALSE))
+  mydata <- mydata[ which(mydata[[pos_age]]>umbral1 & mydata[[pos_age]]<umbral2), ]
+  agefilter <- paste("between", umbral1, "and", umbral2, sep="")
+}else if(intervalo==""){
+  agefilter<-"allages"
+}
+
+#Or choose a gender filter
+print("Choose a gender filter: write M for MALE, F for FEMALE and B for BOTH:")
+gender <- readLines(n=1, ok=FALSE)
+if(gender == "M"){
+  mydata <- mydata[ which(mydata[[pos_gender]]=="Hombre" | mydata[[pos_gender]]==1), ]
+  genderfilter <- "male"
+}else if(gender == "F"){
+  mydata <- mydata[ which(mydata[[pos_gender]]=="Mujer" | mydata[[pos_gender]]==2), ]
+  genderfilter <- "female"
+}else if(gender == "B" | gender==""){
+  genderfilter <- "both"
+}
+
+# or only does that present some diagnose, e. g. SIADH
+mydata <- mydata[grep("296", mydata[[pos_ICD9]], invert = FALSE),]
+diagnosefilter <- "humour"
+#253.6
