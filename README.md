@@ -7,6 +7,7 @@ Note: Please execute checkPackages.R first time you try to run cmbdclusteR.
 
 The scientific workflow works as follows (ordered by sequence):
 
+- config.R -> execute this script the first. It will ask you the installation directory and questions to identify columns properly.
 - transforma.R -> input the base CSV file with ICD9 and outputs a feature matrix file with separated ICD9-columns
 - mapea-to-phewas.R -> input the ICD9 feature matrix file and outputs a PHEWAS feature matrix file
 - Filtra-prevalencia.R -> it filters out the PHEWAS columns not reaching a stablished prevalence threshold for the dataset 
