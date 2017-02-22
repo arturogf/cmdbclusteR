@@ -65,6 +65,7 @@ if(intervalo == "L"){
   agefilter<-"allages"
 }
 
+#prueba
 #Or choose a gender filter
 print("Choose a gender filter: write M for MALE, F for FEMALE and B for BOTH:")
 gender <- readLines(n=1, ok=FALSE)
