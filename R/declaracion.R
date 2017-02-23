@@ -95,10 +95,11 @@ if(gender == "M"){
 # Select GRD filter
 if(pos_GRD!=0){
   print("Select GRD filter (if filtering by several GRD values, separate them by ','): ")
-  GRDvalues <- as.numeric(unlist(strsplit(readLines(n=1,ok=FALSE), split=",")))
+  GRDvalues <- unlist(strsplit(readLines(n=1,ok=FALSE), split=","))
   GRDchar <- paste(as.character(sort(GRDvalues)), collapse="-")
   GRDfilter <- paste("GRD", GRDchar, sep="-")
-  mydata <- mydata[which(mydata[[pos_GRD]] %in% GRDvalues),]
+  matches <- unique (grep(paste(GRDvalues,collapse="|"), mydata[[pos_GRD]], value=TRUE))
+  mydata <- mydata[which(mydata[[pos_GRD]] %in% matches),]
 }
 
 #SIADH ICD9: 253.6
