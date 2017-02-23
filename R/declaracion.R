@@ -1,8 +1,17 @@
-# -------------- define file input --------------
+# -------------- define path to file input --------------
 print("A window will pop up to select data input file.")
 f <- tk_choose.files(default = "", caption = "Select data input file", multi = FALSE)
-# Read data separated by the sign specified by the user
+# Read data separated by ";"
 mydata = read.csv(f, header=TRUE, sep=";", as.is = TRUE) 
+
+# -------------- define path to mapping file --------------
+print("A window will pop up to select mapping file (ICD9-PheWAS or ICD10-PheWAS).")
+fmapping <- tk_choose.files(default = "", caption = "Select mapping file", multi = FALSE)
+# Read data separated by "\t"
+mapping = read.csv(fmapping, header=TRUE, sep="\t", as.is = TRUE, check.names=FALSE)
+for (i in 1:ncol(mapping)){
+  class(mapping[[i]]) <- "character"
+}
 
 # Define the number of column that hosts the patient ID / NHC
 print("Number of column that hosts the NHC:")
@@ -11,6 +20,10 @@ pos_numeroHC <- as.numeric(readLines(n=1, ok=FALSE))
 # Define the number of column that hosts the ICD9 codes
 print("Number of column that hosts the ICD9 codes:")
 pos_ICD9 <- as.numeric(readLines(n=1, ok=FALSE))
+
+# Define the number of column that hosts the GRD
+print("Number of column that hosts GRD (write 0 if there is no such column):")
+pos_GRD <- as.numeric(readLines(n=1, ok=FALSE))
 
 # Define the number of column that hosts the entry date
 print("Number of column that hosts patients' entry date:")
@@ -42,7 +55,7 @@ mydata$Estancia <- round(as.numeric(as.Date(mydata[[pos_discharge]], "%d-%m-%Y")
 pos_stay <- ncol(mydata)
 
 # Add any kind of filtering that we want on the data, e.g. age > 18
-print("Choose an age filter: write L for LESS THAN, H for HIGHER THAN or B for BETWEEN:")
+print("Choose an age filter (or press ENTER to select all ages): write L for LESS THAN, H for HIGHER THAN or B for BETWEEN:")
 intervalo <- readLines(n=1, ok=FALSE)
 if(intervalo == "L"){
   print("Choose top threshold:")
@@ -79,10 +92,21 @@ if(gender == "M"){
   genderfilter <- "both"
 }
 
-# or only does that present some diagnose, e. g. humour disorder
-mydata <- mydata[grep("296", mydata[[pos_ICD9]], invert = FALSE),]
-diagnosefilter <- "humour"
+# Select GRD filter
+if(pos_GRD!=0){
+  print("Select GRD filter (if filtering by several GRD values, separate them by ','): ")
+  GRDvalues <- as.numeric(unlist(strsplit(readLines(n=1,ok=FALSE), split=",")))
+  GRDchar <- paste(as.character(sort(GRDvalues)), collapse="-")
+  GRDfilter <- paste("GRD", GRDchar, sep="-")
+  mydata <- mydata[which(mydata[[pos_GRD]] %in% GRDvalues),]
+}
 
 #SIADH ICD9: 253.6
 #mydata <- mydata[grep("253.6", mydata[[pos_ICD9]], invert = FALSE),]
 #diagnosefilter <- "siadh"
+
+# or only does that present some diagnose, e. g. humour disorder
+mydata <- mydata[grep("296", mydata[[pos_ICD9]], invert = FALSE),]
+diagnosefilter <- "humour"
+
+pos_first_ICD9 <- ncol(mydata) + 1
