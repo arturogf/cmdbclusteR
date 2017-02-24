@@ -146,4 +146,5 @@ if(filtermode=="1"){
   mydata <- mydata[matchesICD9,]
 }
 
+mycopy <- mydata
 pos_first_ICD9 <- ncol(mydata) + 1

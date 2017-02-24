@@ -17,17 +17,6 @@
 # of the ICD9 codes is added as a column and is filled with 0/1 
 # for each patient.
 
-# --------- THIS LOOP IS ONLY NEEDED IN OUR SETTINGS ----------
-# For each empty cell, we fill it with its upper cell value. This is due to the source data
-# having been grouped by date. When exporting excel data to csv, the lower grouped data values are lost.
-for (i in 1:nrow(mydata))
-  for (j in 1:pos_discharge)
-    if (is.na(mydata[i, j]) | mydata[i, j] == "") {
-      print(paste(as.character(i), as.character(j), sep = ","))
-      if (i > 1)
-        mydata[i, j] <- mydata[i-1, j]
-    }
-
 # For each unique ICD9 existing code, we add a new column. Processed by row.
 for (l in 1:nrow(mydata)) {
   # we split the ICD9 codes field (string) using character ']'.
@@ -50,33 +39,32 @@ for (l in 1:nrow(mydata)) {
   }
 }
 
-# we reorder ICDs columns by name.##REVISAR!
-first_icd9 <- pos_ICD9 + 1
-ordered <- mydata[c(first_icd9:ncol(mydata))]
-ordered <- mydata[, order(names(mydata))]
-mydata <- cbind(mydata[c(1:(first_icd9-1))],ordered) 
-
+# Reorder ICDs columns by name.
+ordered <- sort(colnames(mydata[,c(pos_first_ICD9:ncol(mydata))]))
+mydata <- mydata[,ordered]
+mydata <- cbind(mycopy, mydata) 
 
 # -------------- define file output --------------
 nombre_generado <-
   paste(
     tools::file_path_sans_ext(basename(f)),
     diagnosefilter,
+    GRDfilter,
     agefilter,
     genderfilter,
     "transformado.csv",
     sep = "-"
   )
 
-print("FYI: Processed file will be saved in cmbdclusteR-master/data/processed by default")
-fout <- file.path(directory, "data/processed", nombre_generado)
-
-# create a file to save processed data
+#create a file to save processed data
 if (!file.exists(file.path(directory, "data/processed"))){
   dir.create(file.path(directory, "data/processed"))
 }
 
+print("FYI: Processed file will be saved in cmbdclusteR/data/processed by default")
+fout <- file.path(directory, "data/processed", nombre_generado)
+
 # write the data frame into the output file, a ; separated CSV that can be directly imported from excel
 write.table(mydata, fout, FALSE, sep=";", row.names = FALSE)
 
-#source(file.path(directory, "/R/mapea-to-phewas.R"))
+source(file.path(directory, "/R/mapea-to-phewas.R"))
