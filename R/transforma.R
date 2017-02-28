@@ -1,18 +1,3 @@
-# This script receives a CSV file with the following fields
-# Year (Año)
-# Type of Activity (Tipo de Actividad)	
-# Patient Record (Num. Historia Clinica)
-# Gender (Sexo)	
-# Birth date (Fecha Nacimiento)
-# Age (Edad)
-# Admission Date (Fecha Ingreso)
-# Discharge Date (Fecha Alta)	
-# Discharge Service (Sección Alta)
-# Discharge Reason (Motivo Alta)	
-# DRG (GRD)
-# Version (Versión)	
-# ICD9 Diagnosis Codes (Dx Todos)
-# 
 # The scripts outputs a feature matrix file where each 
 # of the ICD9 codes is added as a column and is filled with 0/1 
 # for each patient.
@@ -40,8 +25,8 @@ for (l in 1:nrow(mydata)) {
 }
 
 # Reorder ICDs columns by name.
-ordered <- sort(colnames(mydata[,c(pos_first_ICD9:ncol(mydata))]))
-mydata <- mydata[,ordered]
+icd9_codes <- sort(colnames(mydata[,c(pos_first_ICD9:ncol(mydata))]))
+mydata <- mydata[,icd9_codes]
 mydata <- cbind(mycopy, mydata) 
 
 # -------------- define file output --------------
@@ -67,4 +52,14 @@ fout <- file.path(directory, "data/processed", nombre_generado)
 # write the data frame into the output file, a ; separated CSV that can be directly imported from excel
 write.table(mydata, fout, FALSE, sep=";", row.names = FALSE)
 
-source(file.path(directory, "/R/mapea-to-phewas.R"))
+# Select whether you want to map data to PHEWAS or not
+print("Write Y to map data to PheWAS code or press ENTER to continue:")
+optionmap <- readLines(n=1, ok=FALSE)
+
+if (optionmap == "Y"){
+  input_type <- "PHEWAS"
+  source(file.path(directory, "/R/mapea-to-phewas.R"))
+}else{
+  input_type <- "GIVEN"
+  source(file.path(directory, "/R/Filtra-prevalencia.R"))
+}

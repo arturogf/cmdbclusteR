@@ -1,19 +1,9 @@
 # This script receives a population file with prevalence info 
 # and returns the same file including a column with the cluster assigned
 
-#Removes everything before starting
-rm (list=ls())
-
 # include source files
-source("/Users/arturogf/cmdbclusteR/R/funciones.R")
-source("/Users/arturogf/cmdbclusteR/R/ordiplot.R")
-
-# Input type can be PHEWAS os ICD9-4
-input_type<-"ICD9-4"
-#input_type<-"PHEWAS"
-
-# define column number where patient ID is stored in original mydata
-col_patientID<-2
+source(file.path(directory, "/R/funciones.R"))
+source(file.path(directory, "/R/ordiplot.R"))
 
 # Define num of clusters
 num_clusters <- 30
