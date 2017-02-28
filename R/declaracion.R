@@ -8,9 +8,9 @@ mydata = read.csv(f, header=TRUE, sep=";", as.is = TRUE)
 print("A window will pop up to select mapping file (ICD9-PheWAS or ICD10-PheWAS).")
 fmapping <- tk_choose.files(default = "", caption = "Select mapping file", multi = FALSE)
 # Read data separated by "\t"
-mapping = read.csv(fmapping, header=TRUE, sep="\t", as.is = TRUE, check.names=FALSE)
-for (i in 1:ncol(mapping)){
-  class(mapping[[i]]) <- "character"
+mapeo = read.csv(fmapping, header=TRUE, sep="\t", as.is = TRUE, check.names=FALSE)
+for (i in 1:ncol(mapeo)){
+  class(mapeo[[i]]) <- "character"
 }
 
 # Define the number of column that hosts the patient ID / NHC
@@ -135,7 +135,7 @@ if(filtermode=="1"){
   }
   matchesICD9 <- unique(grep(paste(ICD9values,collapse="|"), d1))
   mydata <- mydata[matchesICD9,]
-}else if(filtermode=="2"){
+}else{
   if(length(ICD9values)==0){
     diagnosefilter <- "allICD9"
   }else{

@@ -1,37 +1,22 @@
 # This script create new rows in the input data frame with those diagnoses 
 # present in more than a threshold prevalence for our population
 
-# -------------- Define if the input data has been already mapped to PHEWAS --------------
-input_type <- "PHEWAS" # In this case, no need to do mapping again
-
-# -------------- define file input --------------
-f = "/Users/arturogf/cmdbclusteR/data/processed/siadh-mayor18-transformado-phewas.csv"
-mydata = read.csv(f, header=TRUE, sep=";", fileEncoding="UTF-8", as.is = TRUE, check.names = FALSE) 
-
-# -------------- define path to PHEWAS mapping file --------------
-fphewas = "/Users/arturogf/cmdbclusteR/data/mappings/PheWAS_code_translation_v1_2-ORIGINAL.txt"
-
-# -------------- define file output for descriptive prevalence phewas information --------------
-fphewasprev = "/Users/arturogf/cmdbclusteR/data/processed/siadh-phewas-prevalentes2.csv"
-
-# -------------- define file output with prevalence calculations --------------
-fout = "/Users/arturogf/cmdbclusteR/data/processed/siadh-phewas-prevalencia2.csv"
-
-# all columns (11) are defined of type character
-colClasses = c(rep("character",11))
-mapeo = read.csv(fphewas, header=TRUE, sep="\t", colClasses=colClasses,fileEncoding="UTF-8", as.is = TRUE, check.names = FALSE) 
-
-# any filtering
-#mydata <- mydata[ which(mydata$Edad<=50), ]
-#mydata <- mydata[ which(mydata$Edad>=18), ]
+if(input_type == "PHEWAS"){
+  mydata <- myphewas
+  remove(myphewas)
+}
 
 # -------------- Define the prevalence threshold (percentage) --------------
-threshold_prev <- 2
+print("Select prevalence threshold to filter you data or press ENTER for default value (2):")
+threshold_prev <- as.numeric(readLines(n=1, ok=FALSE))
+if (is.na(threshold_prev)){
+  threshold_prev <- 2
+}
 
 num_episodes <- nrow(mydata)
 
-# we suppose that first column with ICD9 separated codes is the following to Dx.Todos
-pos_first_phewas <- match("Dx.Todos", names(mydata)) + 1
+# we suppose that first column with phewas separated codes is the same as the column hosting first ICD9 code
+pos_first_phewas <- pos_first_ICD9
 
 # We add new row for total number of ocurrences (Total)
 mydata["Total", pos_first_phewas:ncol(mydata)] <-
@@ -85,6 +70,17 @@ if (!(input_type == "PHEWAS")) {
     phewas_desc <- c(phewas_desc, c)
   }
   tabla <- data.frame(codigos, desc, phewas, phewas_desc, percent)
+  
+  pos <- 1
+  tabla[["phewas_percent"]] <- rep(0,nrow(tabla))
+  for(i in 1:nrow(tabla)){
+    if(tabla[i,"phewas"] == tabla[pos,"phewas"]){
+      tabla[pos, "phewas_percent"] <-tabla[pos, "phewas_percent"] + tabla[i,"percent"] 
+    }else{
+      pos <- i
+      tabla[pos, "phewas_percent"] <-tabla[pos, "phewas_percent"] + tabla[i,"percent"]
+    }
+  }
 }
 
 # If file is already PHEWAS
@@ -99,15 +95,26 @@ if (input_type == "PHEWAS") {
     phewas_desc <- c(phewas_desc, c)
   }
   tabla <- data.frame(codigos, phewas_desc, percent)
- 
-   # We create a file with info of phewas codes and prevalence percentages, for example:
-  #"codigos";"phewas_desc";"percent"
-  #"010";"Tuberculosis";3,18
-  #"041.2";"Streptococcus infection";2,42 ...
-  write.table(tabla,fphewasprev,FALSE,sep=";",row.names = FALSE, fileEncoding = "UTF-8",dec=",")
 }
+
+print("FYI: Processed file will be saved in cmbdclusteR/data/processed by default")
+# ------ define file output for descriptive prevalence phewas information --------------
+# redefine nombre_generado
+nombre_generado <- paste(substring(nombre_generado, 1, regexpr("\\.", nombre_generado)-1),"-prevalence", threshold_prev, ".csv", sep="")
+fphewasprev <- file.path(directory, "data/processed", nombre_generado)
+
+# We create a file with info of phewas codes and prevalence percentages, for example:
+#"codigos";"phewas_desc";"percent"
+#"010";"Tuberculosis";3,18
+#"041.2";"Streptococcus infection";2,42 ...
+write.table(tabla,fphewasprev,FALSE,sep=";",row.names = FALSE, fileEncoding = "UTF-8",dec=",")
+
+# ------ define file output with prevalence calculations --------------
+#redefine nombre_generado
+nombre_generado <- paste(substring(nombre_generado, 1, regexpr("\\.", nombre_generado)-1),"Filtered.csv", sep="")
+fout <- file.path(directory, "data/processed", nombre_generado)
 
 # We write a file with all the prevalence calculations (total, percentage, prevalence)
 write.table(prevalentes,fout,FALSE,sep=";",row.names = FALSE, fileEncoding = "UTF-8",dec=",")
 
-
+#source(file.path(directory, "/R/asignaclusters.R"))
