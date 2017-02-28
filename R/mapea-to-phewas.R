@@ -48,7 +48,7 @@ for (i in nomapeo)
 myphewas <- cbind(mycopy,dataph)
 
 # redefine nombre_generado
-nombre_generado <- paste(substring(nombre_generado, 1, regexpr("\\.", nombre_generado)-1),"-phewas.csv", sep="")
+nombre_generado <- paste(substring(nombre_generado, 1, nchar(nombre_generado)-4),"-phewas.csv", sep="")
 
 print("FYI: Processed file will be saved in cmbdclusteR/data/processed by default")
 fout <- file.path(directory, "data/processed", nombre_generado)

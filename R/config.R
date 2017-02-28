@@ -22,8 +22,6 @@ if(as.numeric(substr(version$minor,1,1))>=3){
 
 library("shiny")
 
-library("ggplot2")
-
 # Select directory where cmbdclusteR-master was downloaded to
 print("A window will pop up to select folder where cmbdclusteR-master was downloaded to.")
 directory <- tk_choose.dir(default="", caption="Select folder where cmbdclusteR-master was downloaded to")

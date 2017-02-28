@@ -148,3 +148,5 @@ if(filtermode=="1"){
 
 mycopy <- mydata
 pos_first_ICD9 <- ncol(mydata) + 1
+
+source(file.path(directory,"/R/transforma.R"))

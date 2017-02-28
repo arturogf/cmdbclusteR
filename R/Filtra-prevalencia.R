@@ -95,12 +95,13 @@ if (input_type == "PHEWAS") {
     phewas_desc <- c(phewas_desc, c)
   }
   tabla <- data.frame(codigos, phewas_desc, percent)
+  tabla[order(tabla[["percent"]], decreasing=TRUE),]
 }
 
 print("FYI: Processed file will be saved in cmbdclusteR/data/processed by default")
 # ------ define file output for descriptive prevalence phewas information --------------
 # redefine nombre_generado
-nombre_generado <- paste(substring(nombre_generado, 1, regexpr("\\.", nombre_generado)-1),"-prevalence", threshold_prev, ".csv", sep="")
+nombre_generado <- paste(substring(nombre_generado, 1, nchar(nombre_generado)-4),"-prevalence", threshold_prev, ".csv", sep="")
 fphewasprev <- file.path(directory, "data/processed", nombre_generado)
 
 # We create a file with info of phewas codes and prevalence percentages, for example:
@@ -111,7 +112,7 @@ write.table(tabla,fphewasprev,FALSE,sep=";",row.names = FALSE, fileEncoding = "U
 
 # ------ define file output with prevalence calculations --------------
 #redefine nombre_generado
-nombre_generado <- paste(substring(nombre_generado, 1, regexpr("\\.", nombre_generado)-1),"Filtered.csv", sep="")
+nombre_generado <- paste(substring(nombre_generado, 1, nchar(nombre_generado)-4),"Filtered.csv", sep="")
 fout <- file.path(directory, "data/processed", nombre_generado)
 
 # We write a file with all the prevalence calculations (total, percentage, prevalence)
