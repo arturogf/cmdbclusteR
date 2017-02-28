@@ -10,6 +10,7 @@ finput="C:/Users/user/Documents/2016-2017/Practicas_Clinico/Codigos/Output/simpr
 mydata = read.csv(finput, header=TRUE, sep=";", fileEncoding="UTF-8", as.is = TRUE, check.names = FALSE)
 
 num_clusters <- length(unique(mydata$cluster))
+num_GRD <- length(unique(mydata$GRD))
 
 classes<-c("character","character","numeric")
 heatdata <- read.table(text="",col.names=c("cluster","GRD","heat"), colClasses=classes)
@@ -59,6 +60,7 @@ nombre_generado_heat <-
   )
 
 png(nombre_generado_heat)
+
 ggplot(heatdata, aes(x = cluster, y = substr(heatdata[["GRD"]],1,20))) + 
   geom_tile(aes(fill = heat), colour="white") + 
   theme(panel.grid = element_blank()) +
@@ -68,9 +70,9 @@ ggplot(heatdata, aes(x = cluster, y = substr(heatdata[["GRD"]],1,20))) +
   ylab("GRD codes") +
   ggtitle("GRD codes prevalence for each cluster") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-  theme(panel.grid.major = element_line(colour = "grey")) +
-  geom_vline(xintercept = seq(0.5,num_clusters+0.5), colour = "red")
-
-  #Hacer las horizontales también y quitar las negras
+  theme(panel.grid.major = element_line(colour = "white")) +
+  #geom_line(aes(colour = rating)) +
+  geom_vline(xintercept = seq(0.5,num_clusters+0.5), colour = "grey") +
+  geom_hline(yintercept = seq(0.5,num_GRD+0.5), colour = "grey")
 
 dev.off()
