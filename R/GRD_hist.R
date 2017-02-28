@@ -1,6 +1,8 @@
 #Removes everything before starting
 rm (list=ls())
 
+library("ggplot2")
+
 # Select directory where cmbdclusteR-master was downloaded to
 print("A window will pop up to select folder where cmbdclusteR-master was downloaded to.")
 directory <- tk_choose.dir(default="", caption="Select folder where cmbdclusteR-master was downloaded to")
