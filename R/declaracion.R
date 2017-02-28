@@ -1,8 +1,17 @@
-# -------------- define file input --------------
+# -------------- define path to file input --------------
 print("A window will pop up to select data input file.")
 f <- tk_choose.files(default = "", caption = "Select data input file", multi = FALSE)
-# Read data separated by the sign specified by the user
+# Read data separated by ";"
 mydata = read.csv(f, header=TRUE, sep=";", as.is = TRUE) 
+
+# -------------- define path to mapping file --------------
+print("A window will pop up to select mapping file (ICD9-PheWAS or ICD10-PheWAS).")
+fmapping <- tk_choose.files(default = "", caption = "Select mapping file", multi = FALSE)
+# Read data separated by "\t"
+mapping = read.csv(fmapping, header=TRUE, sep="\t", as.is = TRUE, check.names=FALSE)
+for (i in 1:ncol(mapping)){
+  class(mapping[[i]]) <- "character"
+}
 
 # Define the number of column that hosts the patient ID / NHC
 print("Number of column that hosts the NHC:")
@@ -11,6 +20,10 @@ pos_numeroHC <- as.numeric(readLines(n=1, ok=FALSE))
 # Define the number of column that hosts the ICD9 codes
 print("Number of column that hosts the ICD9 codes:")
 pos_ICD9 <- as.numeric(readLines(n=1, ok=FALSE))
+
+# Define the number of column that hosts the GRD
+print("Number of column that hosts GRD (write 0 if there is no such column):")
+pos_GRD <- as.numeric(readLines(n=1, ok=FALSE))
 
 # Define the number of column that hosts the entry date
 print("Number of column that hosts patients' entry date:")
@@ -37,12 +50,23 @@ if(pos_age==0){
 print("Number of column that hosts patients' gender:")
 pos_gender <- as.numeric(readLines(n=1, ok=FALSE))
 
+# --------- THIS LOOP IS ONLY NEEDED IN OUR SETTINGS ----------
+# For each empty cell, we fill it with its upper cell value. This is due to the source data
+# having been grouped by date. When exporting excel data to csv, the lower grouped data values are lost.
+for (i in 1:nrow(mydata))
+  for (j in 1:pos_discharge)
+    if (is.na(mydata[i, j]) | mydata[i, j] == "") {
+      print(paste(as.character(i), as.character(j), sep = ","))
+      if (i > 1)
+        mydata[i, j] <- mydata[i-1, j]
+    }
+
 # Create new column with patient's stay in days
 mydata$Estancia <- round(as.numeric(as.Date(mydata[[pos_discharge]], "%d-%m-%Y")-as.Date(mydata[[pos_entry]], "%d-%m-%Y")))
 pos_stay <- ncol(mydata)
 
 # Add any kind of filtering that we want on the data, e.g. age > 18
-print("Choose an age filter: write L for LESS THAN, H for HIGHER THAN or B for BETWEEN:")
+print("Choose an age filter (or press ENTER to select all ages): write L for LESS THAN, H for HIGHER THAN or B for BETWEEN:")
 intervalo <- readLines(n=1, ok=FALSE)
 if(intervalo == "L"){
   print("Choose top threshold:")
@@ -75,14 +99,52 @@ if(gender == "M"){
 }else if(gender == "F"){
   mydata <- mydata[ which(mydata[[pos_gender]]=="Mujer" | mydata[[pos_gender]]==2), ]
   genderfilter <- "female"
-}else if(gender == "B" | gender==""){
+}else{
   genderfilter <- "both"
 }
 
-# or only does that present some diagnose, e. g. humour disorder
-mydata <- mydata[grep("296", mydata[[pos_ICD9]], invert = FALSE),]
-diagnosefilter <- "humour"
+# Select GRD filter
+if(pos_GRD!=0){
+  print("Select GRD filter (if filtering by several GRD values, separate them by ','): ")
+  GRDvalues <- trimws(unlist(strsplit(readLines(n=1,ok=FALSE), split=",")))
+  if(length(GRDvalues)==0){
+    GRDfilter <- "allGRD"
+  }else{
+    GRDchar <- paste(as.character(sort(as.numeric(GRDvalues))), collapse="-")
+    GRDfilter <- paste("GRD", GRDchar, sep="-")
+  }
+  matches <- unique(grep(paste(GRDvalues,collapse="|"), mydata[[pos_GRD]]))
+  mydata <- mydata[matches,]
+}
 
-#SIADH ICD9: 253.6
-#mydata <- mydata[grep("253.6", mydata[[pos_ICD9]], invert = FALSE),]
-#diagnosefilter <- "siadh"
+#Select ICD9 filter
+print("Choose 1 for filtering just ICD9 found in D1 (primary diagnose) or 2 for ICD9 found in all diagnoses:")
+filtermode <- readLines(n=1, ok=FALSE)
+print("Select ICD9 filter (if filtering by several ICD9 values, separate them by ','): ")
+ICD9values <- trimws(unlist(strsplit(readLines(n=1,ok=FALSE), split=",")))
+if(filtermode=="1"){
+  if(length(ICD9values)==0){
+    diagnosefilter <- "allICD9"
+  }else{
+    ICD9char <- paste(as.character(sort(as.numeric(ICD9values))), collapse="-")
+    diagnosefilter <- paste("ICD9", ICD9char, sep="-")
+  }
+  d1 <- rep(0, nrow(mydata))
+  for (i in 1:nrow(mydata)){
+    d1[i] <- substring(mydata[i,pos_ICD9],2,regexpr("]", mydata[i,pos_ICD9])-1)
+  }
+  matchesICD9 <- unique(grep(paste(ICD9values,collapse="|"), d1))
+  mydata <- mydata[matchesICD9,]
+}else if(filtermode=="2"){
+  if(length(ICD9values)==0){
+    diagnosefilter <- "allICD9"
+  }else{
+    ICD9char <- paste(as.character(sort(as.numeric(ICD9values))), collapse="-")
+    diagnosefilter <- paste("ICD9", ICD9char, sep="-")
+  }
+  matchesICD9 <- unique(grep(paste(ICD9values,collapse="|"), mydata[[pos_ICD9]]))
+  mydata <- mydata[matchesICD9,]
+}
+
+mycopy <- mydata
+pos_first_ICD9 <- ncol(mydata) + 1
