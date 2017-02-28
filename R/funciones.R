@@ -8,8 +8,9 @@ subsetPhewasVars<-function(mydata,nozero=TRUE,quitar_codigos, pos_first_field) {
   # seleccionamos el subconjunto de las variables icd9
   parcial<-mydata[1:(nrow(mydata)-3),pos_first_field:ncol(mydata)]
   
-  # quitamos la variable de hiponatremia
-  parcial<-parcial[,-match(quitar_codigos,names(parcial))]
+  # quitamos las variables que sean
+  if (quitar_codigos!="")
+    parcial<-parcial[,-match(quitar_codigos,names(parcial))]
   
   if (nozero) {
     # buscamos todas las filas que tengan todo a cero y las eliminamos. Esto permite que no haya NAs luego

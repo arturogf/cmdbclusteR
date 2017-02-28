@@ -23,11 +23,11 @@ pos_first_field <- match("Dx.Todos", names(mydata))+1
 
 # e.g. for SIADH, we can remove, hiponatremia, essential hipertension, diabetes, 
 # hiperlipidemia, hipercolesterolemia, tobacco disorder
-# Posible codes to drop in Hiponatremia SIADH (ICD9 = 253.6)
-#codes_to_drop <- c("276.12", "401.1", "250.2", "272.11", "272.1", "318", "253.7")
+# Posible codes to drop in Hiponatremia  (SIADH: ICD9 = 253.6, PHEWAS=253.7)
+codes_to_drop <- c("276.12", "401.1", "250.2", "272.11", "272.1", "318", "253.7")
 # Posible codes to drop in mood disorder (ICD9 = 296)
 #codes_to_drop <- c("401.9","272.0","250.0")
-codes_to_drop<-""
+#codes_to_drop<-""
 
 # We subset the feature matrix, dropping the selected variables to remove and the rows with all columns==0
 parcial <- subsetPhewasVars(mydata, TRUE, codes_to_drop, pos_first_field)
@@ -70,7 +70,7 @@ d2 <- function(X) ade4::dist.binary(X, method = "2")
 
 # --- here we have to define which clustering operations to perform, including method (ward, single, etc.) ---
 # Carry out the similarity profile analysis with 50 bootstrapping iterations
-res.ward.siadh <-simprof(mij, num.expected=500, num.simulated=499,
+res.ward.siadh <-simprof(mij, num.expected=10, num.simulated=9,
                          method.cluster="ward.D", method.distance=d2,
                          method.transform="identity", alpha=0.05,
                          sample.orientation="row",silent=FALSE, increment=10)
@@ -199,7 +199,7 @@ for (i in 1:num_clusters) {
 #  statsclusters[1,i]<-mapeo[which(mapeo[["phewas_code"]]==colnames(statsclusters)[i]),"phewas_string"][1] 
 
 # ---- if needed, add the patient record number if needed for exploration -----
-salida$NHC <- mydata[row.names(parcial), col_patientID]
+salida$NHC <- mydata[row.names(parcial), pos_numeroHC]
 
 colnames(statsclusters)[ncol(statsclusters)] <- "Intracluster_contribution"
 colnames(statsclusters)[ncol(statsclusters)-1] <- "unique_patients"

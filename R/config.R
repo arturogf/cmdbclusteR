@@ -3,7 +3,7 @@
 # Note: The script should be called before executing cmbdclusteR
 rm(list=ls())
 
-list.of.packages <- c("ade4","clustsig","fpc","prabclus","cluster","clusterCrit","DMwR","HighDimOut", "shiny")
+list.of.packages <- c("ade4","clustsig","fpc","prabclus","cluster","clusterCrit","DMwR","HighDimOut", "shiny", "ggplot2","vegan")
 
 if(as.numeric(substr(version$minor,1,1))>=3){
   list.of.packages[length(list.of.packages)+1] <- "tcltk2"
@@ -21,8 +21,6 @@ if(as.numeric(substr(version$minor,1,1))>=3){
 }
 
 library("shiny")
-
-library("ggplot2")
 
 # Select directory where cmbdclusteR-master was downloaded to
 print("A window will pop up to select folder where cmbdclusteR-master was downloaded to.")
