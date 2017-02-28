@@ -211,7 +211,7 @@ colnames(statsclusters)[ncol(statsclusters)-2] <- "nepisodes"
 salida$GRD <- mydata[row.names(parcial), pos_GRD]
 
 # We write the file with all the statitics per cluster
-write.table(fclusters,fstats,FALSE,sep=";",row.names = FALSE, fileEncoding = "UTF-8",dec=",")
+write.table(salida,fclusters,FALSE,sep=";",row.names = FALSE, fileEncoding = "UTF-8",dec=",")
 
 for (i in 1:num_clusters) {
   # store the number of unique patients in each cluster
