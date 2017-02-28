@@ -12,13 +12,13 @@ num_bootstrap <- 10
 # Define threshold for intra-cluster contribution that I want to show in final output
 threshold_per_cluster <- 0
 
-#siadh with prevalence information
-finput="/Users/arturogf/cmdbclusteR/data/processed/siadh-phewas-prevalencia2.csv"
-mydata = read.csv(finput, header=TRUE, sep=";", fileEncoding="UTF-8", as.is = TRUE, check.names = FALSE) 
+#redefine mydata
+mydata <- prevalentes
+remove(prevalentes)
 
 # we suppose that first column with ICD9 separated codes is the following to Dx.Todos
-pos_first_field <- match("Dx.Todos", names(mydata))+1
-
+pos_first_field <- pos_first_ICD9
+  
 # -------- Define variables that we do not want to consider when calculating distances (similarity) ---------
 
 # e.g. for SIADH, we can remove, hiponatremia, essential hipertension, diabetes, 

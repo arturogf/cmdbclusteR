@@ -117,4 +117,5 @@ fout <- file.path(directory, "data/processed", nombre_generado)
 # We write a file with all the prevalence calculations (total, percentage, prevalence)
 write.table(prevalentes,fout,FALSE,sep=";",row.names = FALSE, fileEncoding = "UTF-8",dec=",")
 
-#source(file.path(directory, "/R/asignaclusters.R"))
+remove(tabla)
+source(file.path(directory, "/R/asignaclusters.R"))
