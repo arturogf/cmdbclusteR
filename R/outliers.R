@@ -1,6 +1,5 @@
 detectaOutliers<-function(mij) {
 
-
 #esto parece que no funciona bien
 #library(DMwR)
 #o1 <- outliers.ranking(dist(mij), method="sizeDiff",method.pars = NULL, clus=list(alg='hclust',meth=metodo))
