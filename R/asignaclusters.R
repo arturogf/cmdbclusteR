@@ -102,9 +102,9 @@ salida <- as.data.frame(parcial)
 salida$cluster <- fillSignificant(salida, res.ward.siadh$significantclusters)
 
 #print ordiplot for cluster visualization
-pdf(ordifile)
-miplot <- ClusterOrdiPlot(distance_measure, salida$cluster, 0)
-dev.off()
+#pdf(ordifile)
+#miplot <- ClusterOrdiPlot(distance_measure, salida$cluster, 0)
+#dev.off()
 #salida$cluster<-groups
 
 
@@ -209,6 +209,9 @@ colnames(statsclusters)[ncol(statsclusters)-2] <- "nepisodes"
 
 # ---- if needed, add the GRD number for exploration in salida -----
 salida$GRD <- mydata[row.names(parcial), pos_GRD]
+
+# We write the file with all the statitics per cluster
+write.table(fclusters,fstats,FALSE,sep=";",row.names = FALSE, fileEncoding = "UTF-8",dec=",")
 
 for (i in 1:num_clusters) {
   # store the number of unique patients in each cluster
