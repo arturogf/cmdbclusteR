@@ -215,6 +215,8 @@ colnames(statsclusters)[ncol(statsclusters)] <- "Intracluster_contribution"
 colnames(statsclusters)[ncol(statsclusters)-1] <- "unique_patients"
 colnames(statsclusters)[ncol(statsclusters)-2] <- "nepisodes"
 
+# ---- if needed, add the GRD number for exploration in salida -----
+salida$GRD <- mydata[row.names(parcial), pos_GRD]
 
 for (i in 1:num_clusters) {
   # store the number of unique patients in each cluster
