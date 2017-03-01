@@ -260,7 +260,7 @@ write.table(salida,fclusters,FALSE,sep=";",row.names = FALSE, fileEncoding = "UT
 
 for (i in 1:num_clusters) {
   # store the number of unique patients in each cluster
-  statsclusters[i + 1, ncol(clusters[[i]]) + 2] <- length(unique(as.data.frame(salida[which(salida$cluster == i), ])$NHC))
+  statsclusters[i + 1, ncol(clusters[[i]]) + 2] <- length(unique(as.data.frame(salida[which(salida$cluster == i), ])[,pos_numeroHC]))
   #print(paste("i: ",statsclusters[i + 1, ncol(clusters[[i]]) + 2]))
 }
 # we remove the patient record number from last column
