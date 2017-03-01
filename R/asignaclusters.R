@@ -17,8 +17,9 @@ num_bootstrap <- as.numeric(readLines(n=1, ok=FALSE))
 if (is.na(num_bootstrap)){
   num_bootstrap <- 500
 }
+itfilter <- paste("simprof", num_bootstrap, "it", sep="")
 # Define threshold for intra-cluster contribution that I want to show in final output
-#threshold_per_cluster <- 0
+threshold_per_cluster <- 0 #REVISAR, pedir por pantalla
 
 # Redefine mydata
 mydata <- prevalentes
@@ -40,7 +41,10 @@ pos_first_field <- pos_first_ICD9
 codes_to_drop<-""
 
 # We subset the feature matrix, dropping the selected variables to remove and the rows with all columns==0
-parcial <- subsetPhewasVars(mydata, TRUE, codes_to_drop, pos_first_field)
+output <- subsetPhewasVars(mydata, TRUE, codes_to_drop, pos_first_field)
+parcial <- as.data.frame(output[[1]])
+mycopy <- as.data.frame(output[[2]])
+remove(output)
 
 # we count the number of patients
 num_patients <- nrow(parcial)
@@ -56,24 +60,53 @@ mij <- as.matrix(sapply(parcial, as.numeric))
 
 library(ade4)
 
- d <- vector()
+# d <- list()
 # for (i in 1:10)
 #   d[[i]] <- dist.binary(mij, method = i)
- d <- dist.binary(mij, method=NULL)
+
+# Select binary distance method
+cat("1 = JACCARD index (1901) S3 coefficient of GOWER & LEGENDRE\n")
+cat("s1 = a/(a+b+c) --> d = sqrt(1 - s)\n")
+cat("2 = SOCKAL & MICHENER index (1958) S4 coefficient of GOWER & LEGENDRE \n")
+cat("s2 = (a+d)/(a+b+c+d) --> d = sqrt(1 - s)\n")
+cat("3 = SOCKAL & SNEATH(1963) S5 coefficient of GOWER & LEGENDRE\n")
+cat("s3 = a/(a+2(b+c)) --> d = sqrt(1 - s)\n")
+cat("4 = ROGERS & TANIMOTO (1960) S6 coefficient of GOWER & LEGENDRE\n")
+cat("s4 = (a+d)/(a+2(b+c)+d) --> d = sqrt(1 - s)\n")
+cat("5 = CZEKANOWSKI (1913) or SORENSEN (1948) S7 coefficient of GOWER & LEGENDRE\n")
+cat("s5 = 2*a/(2*a+b+c) --> d = sqrt(1 - s)\n")
+cat("6 = S9 index of GOWER & LEGENDRE (1986)\n")
+cat("s6 = (a-(b+c)+d)/(a+b+c+d) --> d = sqrt(1 - s)\n")
+cat("7 = OCHIAI (1957) S12 coefficient of GOWER & LEGENDRE\n")
+cat("s7 = a/sqrt((a+b)(a+c)) --> d = sqrt(1 - s)\n")
+cat("8 = SOKAL & SNEATH (1963) S13 coefficient of GOWER & LEGENDRE\n")
+cat("s8 = ad/sqrt((a+b)(a+c)(d+b)(d+c)) --> d = sqrt(1 - s)\n")
+cat("9 = Phi of PEARSON = S14 coefficient of GOWER & LEGENDRE\n")
+cat("s9 = ad-bc)/sqrt((a+b)(a+c)(b+d)(d+c)) --> d = sqrt(1 - s)\n")
+cat("10 = S2 coefficient of GOWER & LEGENDRE\n")
+cat("s10 =  a/(a+b+c+d) --> d = sqrt(1 - s) and unit self-similarity\n")
+print("Select binary distance method or press ENTER for value by default (2):")
+nmethod <- as.integer(readLines(n=1, ok=FALSE))
+if (is.na(nmethod)){
+  nmethod <- 2
+}
+distancefilter <- paste("d", nmethod, sep="")
+
+distance_measure <- dist.binary(mij, method=nmethod)
 
 ################################################################
 
 library(clustsig)
 # ---------- Define which distance measure to use in this execution -------------
-distance_measure <- d[[2]]
+#distance_measure <- d[[2]]
 
 # Identify the distance to use in simprof
-d2 <- function(X) ade4::dist.binary(X, method = "2")
+d <- function(X) ade4::dist.binary(X, method = nmethod)
 
 # --- here we have to define which clustering operations to perform, including method (ward, single, etc.) ---
 # Carry out the similarity profile analysis with 50 bootstrapping iterations
 res.ward.siadh <-simprof(mij, num.expected=num_bootstrap, num.simulated=(num_bootstrap-1),
-                         method.cluster="ward.D", method.distance=d2,
+                         method.cluster="ward.D", method.distance=d,
                          method.transform="identity", alpha=0.05,
                          sample.orientation="row",silent=FALSE, increment=10)
 
@@ -81,11 +114,18 @@ library(fpc)
 library(prabclus)
 library(cluster)
 
+#create a file to save output data
+if (!file.exists(file.path(directory, "data/output"))){
+  dir.create(file.path(directory, "data/output"))
+}
+
 # -------- define output files --------
-pdffile="/Users/arturogf/cmdbclusteR/data/output/mayores18-simprof500-phewas-d2-wardD.pdf"
-ordifile="/Users/arturogf/cmdbclusteR/data/output/ordiplot-mayores18-simprof500-phewas-d2-wardD.pdf"
-fclusters="/Users/arturogf/cmdbclusteR/data/output/simprof500-phewas-d2-wardD.csv"
-fstats="/Users/arturogf/cmdbclusteR/data/output/stats-simprof500-cluster-phewas-d2-wardD.csv"
+clusterfilter <- "ward.D" #REVISION, pedir por pantalla
+nombre_generado <- paste(substring(nombre_generado, 1, nchar(nombre_generado)-4), distancefilter, clusterfilter, itfilter, sep="-")
+pdffile <- file.path(directory, "data/output", paste(nombre_generado, ".pdf", sep=""))
+ordifile <- file.path(directory, "data/output", paste(nombre_generado, "-ordiplot.pdf", sep=""))
+fclusters <- file.path(directory, "data/output", paste(nombre_generado, ".csv", sep=""))
+fstats <- file.path(directory, "data/output", paste(nombre_generado, "-stats.csv", sep=""))
 
 # plot dendogram and red line for cut-off height h
 pdf(pdffile)
@@ -95,8 +135,7 @@ dev.off()
 # num_clusters is taken from the output obtained from simprof execution
 num_clusters <- res.ward.siadh$numgroups
 
-salida <- as.data.frame(parcial)
-#salida$cluster<-particiones[[num_clusters]]$result$partition
+salida <- as.data.frame(parcial) 
 
 #add new column 'cluster' to salida using a function defined in funciones.R
 salida$cluster <- fillSignificant(salida, res.ward.siadh$significantclusters)
@@ -201,14 +240,20 @@ for (i in 1:num_clusters) {
 #  statsclusters[1,i]<-mapeo[which(mapeo[["phewas_code"]]==colnames(statsclusters)[i]),"phewas_string"][1] 
 
 # ---- if needed, add the patient record number if needed for exploration -----
-salida$NHC <- mydata[row.names(parcial), pos_numeroHC]
+#salida$NHC <- mydata[row.names(parcial), pos_numeroHC]
 
 colnames(statsclusters)[ncol(statsclusters)] <- "Intracluster_contribution"
 colnames(statsclusters)[ncol(statsclusters)-1] <- "unique_patients"
 colnames(statsclusters)[ncol(statsclusters)-2] <- "nepisodes"
 
 # ---- if needed, add the GRD number for exploration in salida -----
-salida$GRD <- mydata[row.names(parcial), pos_GRD]
+#salida$GRD <- mydata[row.names(parcial), pos_GRD]
+
+salida <- cbind(mycopy, salida)
+
+# We write the file with all the statitics per cluster
+write.table(salida,fclusters,FALSE,sep=";",row.names = FALSE, fileEncoding = "UTF-8",dec=",")
+
 
 for (i in 1:num_clusters) {
   # store the number of unique patients in each cluster

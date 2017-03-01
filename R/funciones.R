@@ -17,9 +17,10 @@ subsetPhewasVars<-function(mydata,nozero=TRUE,quitar_codigos, pos_first_field) {
     zeros<-which(apply(parcial[,], MARGIN = 1, function(x) any(x != 0))==FALSE)
     if (length(zeros))
       parcial<-parcial[-zeros,]
+      mycopy<-mycopy[-zeros,]
   }
-  
-  return(parcial)
+  output <- list(parcial, mycopy)
+  return(output)
 }
 
 #' This function returns a vector indicating on each position (for num_clusters) how many
