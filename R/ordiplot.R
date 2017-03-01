@@ -2,8 +2,7 @@ require(vegan)
 
 ClusterOrdiPlot<-function(distance_measure,cluster_solution,threshold) {
 
-
-groups<-names(which((table(cluster_solution))>(threshold*length(cluster_solution))))
+groups<-names(which((table(cluster_solution))>(threshold*length(cluster_solution)/100)))
 
 n<-length(groups)
 cols<-rainbow(n, s = 1, v = 1, start = 0, end = max(1, n - 1)/n, alpha = 1)
@@ -36,5 +35,4 @@ legend("bottomleft", legend = mis_etiquetas,
         pch = 16, col= cols,  bty = "n")
 
 return(ordiplot)
-
 }
