@@ -141,9 +141,9 @@ salida <- as.data.frame(parcial)
 salida$cluster <- fillSignificant(salida, res.ward.siadh$significantclusters)
 
 #print ordiplot for cluster visualization
-pdf(ordifile)
-miplot <- ClusterOrdiPlot(distance_measure, salida$cluster, 0)
-dev.off()
+#pdf(ordifile)
+#miplot <- ClusterOrdiPlot(distance_measure, salida$cluster, 0)
+#dev.off()
 #salida$cluster<-groups
 
 
@@ -254,6 +254,9 @@ salida <- cbind(mycopy, salida)
 # We write the file with all the statitics per cluster
 write.table(salida,fclusters,FALSE,sep=";",row.names = FALSE, fileEncoding = "UTF-8",dec=",")
 
+
+# We write the file with all the statitics per cluster
+write.table(salida,fclusters,FALSE,sep=";",row.names = FALSE, fileEncoding = "UTF-8",dec=",")
 
 for (i in 1:num_clusters) {
   # store the number of unique patients in each cluster

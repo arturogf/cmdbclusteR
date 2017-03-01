@@ -10,6 +10,7 @@ directory <- tk_choose.dir(default="", caption="Select folder where cmbdclusteR-
 
 #input
 finput="C:/Users/user/Documents/2016-2017/Practicas_Clinico/Codigos/Output/simprof1000-phewas-d2-wardD_mood_women.csv"
+finput<-fclusters
 mydata = read.csv(finput, header=TRUE, sep=";", fileEncoding="UTF-8", as.is = TRUE, check.names = FALSE)
 
 #Number of column were de number of cluster is stored
@@ -53,9 +54,17 @@ if(nrow(grd.freq)==1){
   dev.off()
 }
 
+
+# if there is less than 10 GRD codes for this cluster
+lengrd<-nrow(dtgrd)
+if (lengrd>=10)
+  lengrd<-10
+
 #We fill the heatdata
-a<-expand.grid(cluster=paste("cluster",i,sep = ""),GRD=unique(dtgrd[,1]))
-a$heat<-dtgrd[,2]
+a<-expand.grid(cluster=paste("cluster",i,sep = ""),GRD=unique(dtgrd[1:lengrd,1]))
+print(a)
+a$heat<-dtgrd[1:lengrd,2]
+print(a)
 heatdata<-rbind(heatdata,a)
 }
 
