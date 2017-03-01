@@ -1,15 +1,8 @@
 #Removes everything before starting
-rm (list=ls())
+#rm (list=ls())
 
 library("ggplot2")
 
-# Select directory where cmbdclusteR-master was downloaded to
-print("A window will pop up to select folder where cmbdclusteR-master was downloaded to.")
-directory <- tk_choose.dir(default="", caption="Select folder where cmbdclusteR-master was downloaded to")
-
-
-#input
-finput="C:/Users/user/Documents/2016-2017/Practicas_Clinico/Codigos/Output/simprof1000-phewas-d2-wardD_mood_women.csv"
 finput<-fclusters
 mydata = read.csv(finput, header=TRUE, sep=";", fileEncoding="UTF-8", as.is = TRUE, check.names = FALSE)
 
