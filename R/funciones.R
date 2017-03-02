@@ -15,9 +15,10 @@ subsetPhewasVars<-function(mydata,nozero=TRUE,quitar_codigos, pos_first_field) {
   if (nozero) {
     # buscamos todas las filas que tengan todo a cero y las eliminamos. Esto permite que no haya NAs luego
     zeros<-which(apply(parcial[,], MARGIN = 1, function(x) any(x != 0))==FALSE)
-    if (length(zeros))
+    if (length(zeros)) {
       parcial<-parcial[-zeros,]
       mycopy<-mycopy[-zeros,]
+    }
   }
   output <- list(parcial, mycopy)
   return(output)
