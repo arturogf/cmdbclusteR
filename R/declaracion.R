@@ -1,54 +1,85 @@
-# -------------- define path to file input --------------
-print("A window will pop up to select data input file.")
-f <- tk_choose.files(default = "", caption = "Select data input file", multi = FALSE)
-# Read data separated by ";"
-mydata = read.csv(f, header=TRUE, sep=";", as.is = TRUE) 
-
-# -------------- define path to mapping file --------------
-print("A window will pop up to select mapping file (ICD9-PheWAS or ICD10-PheWAS).")
-fmapping <- tk_choose.files(default = "", caption = "Select mapping file", multi = FALSE)
-# Read data separated by "\t"
-mapeo = read.csv(fmapping, header=TRUE, sep="\t", as.is = TRUE, check.names=FALSE)
-for (i in 1:ncol(mapeo)){
-  class(mapeo[[i]]) <- "character"
+answer <- ""
+if (file.exists(file.path(directory, "setup.cfg"))){
+  load(file.path(directory, "setup.cfg"))
+  print(paste("You are using", basename(f), "input data. Write F to select another input data or press ENTER to continue:"))
+  answer <- as.character(readLines(n=1, ok=FALSE))
+  if(answer==""){
+    mydata = read.csv(f, header=TRUE, sep=";", as.is = TRUE) 
+    mapeo = read.csv(fmapping, header=TRUE, sep="\t", as.is = TRUE, check.names=FALSE)
+    for (i in 1:ncol(mapeo)){
+      class(mapeo[[i]]) <- "character"
+    }
+  }
+}
+if(!(file.exists(file.path(directory, "setup.cfg"))) | answer=="F"){
+  # -------------- define path to file input --------------
+  print("A window will pop up to select data input file.")
+  f <- tk_choose.files(default = "", caption = "Select data input file", multi = FALSE)
+  # Read data separated by ";"
+  mydata = read.csv(f, header=TRUE, sep=";", as.is = TRUE) 
+  
+  # -------------- define path to mapping file --------------
+  print("A window will pop up to select mapping file (ICD9-PheWAS or ICD10-PheWAS).")
+  fmapping <- tk_choose.files(default = "", caption = "Select mapping file", multi = FALSE)
+  # Read data separated by "\t"
+  mapeo = read.csv(fmapping, header=TRUE, sep="\t", as.is = TRUE, check.names=FALSE)
+  for (i in 1:ncol(mapeo)){
+    class(mapeo[[i]]) <- "character"
+  }
+  
+  # Define the number of column that hosts the patient ID / NHC
+  print("Number of column that hosts the NHC:")
+  pos_numeroHC <- as.numeric(readLines(n=1, ok=FALSE))
+  
+  # Define the number of column that hosts the ICD9 codes
+  print("Number of column that hosts the ICD9 codes:")
+  pos_ICD9 <- as.numeric(readLines(n=1, ok=FALSE))
+  
+  # Define the number of column that hosts the GRD
+  print("Number of column that hosts GRD (write 0 if there is no such column):")
+  pos_GRD <- as.numeric(readLines(n=1, ok=FALSE))
+  
+  # Define the number of column that hosts the entry date
+  print("Number of column that hosts patients' entry date:")
+  pos_entry <- as.numeric(readLines(n=1, ok=FALSE))
+  mydata[,pos_entry] <- gsub("/", "-", mydata[,pos_entry])
+  
+  # Define the number of column that hosts the discharge date
+  print("Number of column that hosts patients' discharge date:")
+  pos_discharge <- as.numeric(readLines(n=1, ok=FALSE))
+  mydata[,pos_discharge] <- gsub("/", "-", mydata[,pos_discharge])
+  
+  # Define the number of column that hosts patients' gender
+  print("Number of column that hosts patients' gender:")
+  pos_gender <- as.numeric(readLines(n=1, ok=FALSE))
+  
+  # Define the number of column that hosts patients' age
+  print("Number of column that hosts patients' ages (write 0 if there is no such column):")
+  pos_age <- as.numeric(readLines(n=1, ok=FALSE))
+  
+  if(pos_age==0){
+    print("Number of column that hosts patients' dates of birth:")
+    pos_birthdate <- as.numeric(readLines(n=1, ok=FALSE))
+    mydata[,pos_birthdate] <- gsub("/", "-", mydata[,pos_birthdate])
+  }else{
+    pos_birthdate <- integer()
+  }
+  
+  # Save column positions and file names for this data input
+  save(f, fmapping, pos_age, pos_birthdate, pos_discharge, pos_entry, pos_gender, pos_GRD, pos_ICD9, pos_numeroHC, file=file.path(directory, "setup.cfg"))
 }
 
-# Define the number of column that hosts the patient ID / NHC
-print("Number of column that hosts the NHC:")
-pos_numeroHC <- as.numeric(readLines(n=1, ok=FALSE))
-
-# Define the number of column that hosts the ICD9 codes
-print("Number of column that hosts the ICD9 codes:")
-pos_ICD9 <- as.numeric(readLines(n=1, ok=FALSE))
-
-# Define the number of column that hosts the GRD
-print("Number of column that hosts GRD (write 0 if there is no such column):")
-pos_GRD <- as.numeric(readLines(n=1, ok=FALSE))
-
-# Define the number of column that hosts the entry date
-print("Number of column that hosts patients' entry date:")
-pos_entry <- as.numeric(readLines(n=1, ok=FALSE))
-mydata[,pos_entry] <- gsub("/", "-", mydata[,pos_entry])
-
-# Define the number of column that hosts the discharge date
-print("Number of column that hosts patients' discharge date:")
-pos_discharge <- as.numeric(readLines(n=1, ok=FALSE))
-mydata[,pos_discharge] <- gsub("/", "-", mydata[,pos_discharge])
-
-# Define the number of column that hosts patients' age
-print("Number of column that hosts patients' ages (write 0 if there is no such column):")
-pos_age <- as.numeric(readLines(n=1, ok=FALSE))
+# Create a new column age if pos_age equals 0
 if(pos_age==0){
-  print("Number of column that hosts patients' dates of birth:")
-  pos_birthdate <- as.numeric(readLines(n=1, ok=FALSE))
-  mydata[,pos_birthdate] <- gsub("/", "-", mydata[,pos_birthdate])
   # Create new column with patients' ages
   mydata$Edad <- round(as.numeric(as.Date(mydata[[pos_discharge]], "%d-%m-%Y")-as.Date(mydata[[pos_birthdate]], "%d-%m-%Y"))/365)
   pos_age <- ncol(mydata)
 }
-# Define the number of column that hosts patients' gender
-print("Number of column that hosts patients' gender:")
-pos_gender <- as.numeric(readLines(n=1, ok=FALSE))
+
+# Create new column with patient's stay in days
+mydata$Estancia <- round(as.numeric(as.Date(mydata[[pos_discharge]], "%d-%m-%Y")-as.Date(mydata[[pos_entry]], "%d-%m-%Y")))
+pos_stay <- ncol(mydata)
+
 
 # --------- THIS LOOP IS ONLY NEEDED IN OUR SETTINGS ----------
 # For each empty cell, we fill it with its upper cell value. This is due to the source data
@@ -60,10 +91,6 @@ for (i in 1:nrow(mydata))
       if (i > 1)
         mydata[i, j] <- mydata[i-1, j]
     }
-
-# Create new column with patient's stay in days
-mydata$Estancia <- round(as.numeric(as.Date(mydata[[pos_discharge]], "%d-%m-%Y")-as.Date(mydata[[pos_entry]], "%d-%m-%Y")))
-pos_stay <- ncol(mydata)
 
 # Add any kind of filtering that we want on the data, e.g. age > 18
 print("Choose an age filter (or press ENTER to select all ages): write L for LESS THAN, H for HIGHER THAN or B for BETWEEN:")
@@ -89,7 +116,6 @@ if(intervalo == "L"){
   agefilter<-"allages"
 }
 
-#prueba
 #Or choose a gender filter
 print("Choose a gender filter: write M for MALE, F for FEMALE and B for BOTH:")
 gender <- readLines(n=1, ok=FALSE)
