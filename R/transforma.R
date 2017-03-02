@@ -33,6 +33,7 @@ mydata <- cbind(mycopy, mydata)
 nombre_generado <-
   paste(
     tools::file_path_sans_ext(basename(f)),
+    filtermode,
     diagnosefilter,
     GRDfilter,
     agefilter,

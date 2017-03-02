@@ -4,7 +4,9 @@ if (file.exists(file.path(directory, "setup.cfg"))){
   print(paste("You are using", basename(f), "input data. Write F to select another input data or press ENTER to continue:"))
   answer <- as.character(readLines(n=1, ok=FALSE))
   if(answer==""){
-    mydata = read.csv(f, header=TRUE, sep=";", as.is = TRUE) 
+    mydata = read.csv(f, header=TRUE, sep=";", as.is = TRUE)
+    mydata[,pos_entry] <- gsub("/", "-", mydata[,pos_entry])
+    mydata[,pos_discharge] <- gsub("/", "-", mydata[,pos_discharge])
     mapeo = read.csv(fmapping, header=TRUE, sep="\t", as.is = TRUE, check.names=FALSE)
     for (i in 1:ncol(mapeo)){
       class(mapeo[[i]]) <- "character"
@@ -60,7 +62,6 @@ if(!(file.exists(file.path(directory, "setup.cfg"))) | answer=="F"){
   if(pos_age==0){
     print("Number of column that hosts patients' dates of birth:")
     pos_birthdate <- as.numeric(readLines(n=1, ok=FALSE))
-    mydata[,pos_birthdate] <- gsub("/", "-", mydata[,pos_birthdate])
   }else{
     pos_birthdate <- integer()
   }
@@ -71,6 +72,7 @@ if(!(file.exists(file.path(directory, "setup.cfg"))) | answer=="F"){
 
 # Create a new column age if pos_age equals 0
 if(pos_age==0){
+  mydata[,pos_birthdate] <- gsub("/", "-", mydata[,pos_birthdate])
   # Create new column with patients' ages
   mydata$Edad <- round(as.numeric(as.Date(mydata[[pos_discharge]], "%d-%m-%Y")-as.Date(mydata[[pos_birthdate]], "%d-%m-%Y"))/365)
   pos_age <- ncol(mydata)
@@ -96,51 +98,51 @@ for (i in 1:nrow(mydata))
 print("Choose an age filter (or press ENTER to select all ages): write L for LESS THAN, H for HIGHER THAN or B for BETWEEN:")
 intervalo <- readLines(n=1, ok=FALSE)
 if(intervalo == "L"){
-  print("Choose top threshold:")
-  umbral <- as.numeric(readLines(n=1, ok=FALSE))
-  mydata <- mydata[ which(mydata[[pos_age]]<umbral), ]
-  agefilter <- paste("lessthan", umbral, sep="")
+ print("Choose top threshold:")
+ umbral <- as.numeric(readLines(n=1, ok=FALSE))
+ mydata <- mydata[ which(mydata[[pos_age]]<umbral), ]
+ agefilter <- paste("lessthan", umbral, sep="")
 }else if(intervalo == "H"){
-  print("Choose down threshold:")
-  umbral <- as.numeric(readLines(n=1, ok=FALSE))
-  mydata <- mydata[ which(mydata[[pos_age]]>umbral), ]
-  agefilter <- paste("higherthan", umbral, sep="")
+ print("Choose down threshold:")
+ umbral <- as.numeric(readLines(n=1, ok=FALSE))
+ mydata <- mydata[ which(mydata[[pos_age]]>umbral), ]
+ agefilter <- paste("higherthan", umbral, sep="")
 }else if(intervalo == "B"){
-  print("Choose down threshold:")
-  umbral1 <- as.numeric(readLines(n=1, ok=FALSE))
-  print("Choose up threshold:")
-  umbral2 <- as.numeric(readLines(n=1, ok=FALSE))
-  mydata <- mydata[ which(mydata[[pos_age]]>umbral1 & mydata[[pos_age]]<umbral2), ]
-  agefilter <- paste("between", umbral1, "and", umbral2, sep="")
+ print("Choose down threshold:")
+ umbral1 <- as.numeric(readLines(n=1, ok=FALSE))
+ print("Choose top threshold:")
+ umbral2 <- as.numeric(readLines(n=1, ok=FALSE))
+ mydata <- mydata[ which(mydata[[pos_age]]>umbral1 & mydata[[pos_age]]<umbral2), ]
+ agefilter <- paste("between", umbral1, "and", umbral2, sep="")
 }else if(intervalo==""){
-  agefilter<-"allages"
+ agefilter<-"allages"
 }
 
 #Or choose a gender filter
 print("Choose a gender filter: write M for MALE, F for FEMALE and B for BOTH:")
 gender <- readLines(n=1, ok=FALSE)
 if(gender == "M"){
-  mydata <- mydata[ which(mydata[[pos_gender]]=="Hombre" | mydata[[pos_gender]]==1), ]
-  genderfilter <- "male"
+ mydata <- mydata[ which(mydata[[pos_gender]]=="Hombre" | mydata[[pos_gender]]==1), ]
+genderfilter <- "male"
 }else if(gender == "F"){
-  mydata <- mydata[ which(mydata[[pos_gender]]=="Mujer" | mydata[[pos_gender]]==2), ]
-  genderfilter <- "female"
+ mydata <- mydata[ which(mydata[[pos_gender]]=="Mujer" | mydata[[pos_gender]]==2), ]
+ genderfilter <- "female"
 }else{
-  genderfilter <- "both"
+ genderfilter <- "both"
 }
 
 # Select GRD filter
 if(pos_GRD!=0){
-  print("Select GRD filter (if filtering by several GRD values, separate them by ','): ")
-  GRDvalues <- trimws(unlist(strsplit(readLines(n=1,ok=FALSE), split=",")))
-  if(length(GRDvalues)==0){
-    GRDfilter <- "allGRD"
-  }else{
-    GRDchar <- paste(as.character(sort(as.numeric(GRDvalues))), collapse="-")
-    GRDfilter <- paste("GRD", GRDchar, sep="-")
-  }
-  matches <- unique(grep(paste(GRDvalues,collapse="|"), mydata[[pos_GRD]]))
-  mydata <- mydata[matches,]
+ print("Select GRD filter (if filtering by several GRD values, separate them by ','): ")
+ GRDvalues <- trimws(unlist(strsplit(readLines(n=1,ok=FALSE), split=",")))
+ if(length(GRDvalues)==0){
+   GRDfilter <- "allGRD"
+ }else{
+   GRDchar <- paste(as.character(sort(as.numeric(GRDvalues))), collapse="-")
+   GRDfilter <- paste("GRD", GRDchar, sep="-")
+ }
+ matches <- unique(grep(paste(GRDvalues,collapse="|"), mydata[[pos_GRD]]))
+ mydata <- mydata[matches,]
 }
 
 #Select ICD9 filter
@@ -149,27 +151,29 @@ filtermode <- readLines(n=1, ok=FALSE)
 print("Select ICD9 filter (if filtering by several ICD9 values, separate them by ','): ")
 ICD9values <- trimws(unlist(strsplit(readLines(n=1,ok=FALSE), split=",")))
 if(filtermode=="1"){
-  if(length(ICD9values)==0){
-    diagnosefilter <- "allICD9"
-  }else{
-    ICD9char <- paste(as.character(sort(as.numeric(ICD9values))), collapse="-")
-    diagnosefilter <- paste("ICD9", ICD9char, sep="-")
-  }
-  d1 <- rep(0, nrow(mydata))
-  for (i in 1:nrow(mydata)){
-    d1[i] <- substring(mydata[i,pos_ICD9],2,regexpr("]", mydata[i,pos_ICD9])-1)
-  }
-  matchesICD9 <- unique(grep(paste(ICD9values,collapse="|"), d1))
-  mydata <- mydata[matchesICD9,]
+ if(length(ICD9values)==0){
+   diagnosefilter <- "allICD9"
+ }else{
+   ICD9char <- paste(as.character(sort(as.numeric(ICD9values))), collapse="-")
+   diagnosefilter <- paste("ICD9", ICD9char, sep="-")
+ }
+ d1 <- rep(0, nrow(mydata))
+ for (i in 1:nrow(mydata)){
+   d1[i] <- substring(mydata[i,pos_ICD9],2,regexpr("]", mydata[i,pos_ICD9])-1)
+ }
+ matchesICD9 <- unique(grep(paste(ICD9values,collapse="|"), d1))
+ mydata <- mydata[matchesICD9,]
+ filtermode<-"d1"
 }else{
-  if(length(ICD9values)==0){
-    diagnosefilter <- "allICD9"
-  }else{
-    ICD9char <- paste(as.character(sort(as.numeric(ICD9values))), collapse="-")
-    diagnosefilter <- paste("ICD9", ICD9char, sep="-")
-  }
-  matchesICD9 <- unique(grep(paste(ICD9values,collapse="|"), mydata[[pos_ICD9]]))
-  mydata <- mydata[matchesICD9,]
+ if(length(ICD9values)==0){
+   diagnosefilter <- "allICD9"
+ }else{
+   ICD9char <- paste(as.character(sort(as.numeric(ICD9values))), collapse="-")
+   diagnosefilter <- paste("ICD9", ICD9char, sep="-")
+ }
+ matchesICD9 <- unique(grep(paste(ICD9values,collapse="|"), mydata[[pos_ICD9]]))
+ mydata <- mydata[matchesICD9,]
+ filtermode <- "dall"
 }
 
 mycopy <- mydata

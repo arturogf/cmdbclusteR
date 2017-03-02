@@ -41,20 +41,30 @@ for (l in 1:nrow(mydata)) {
 }
 
 # the icd9 codes without PheWAS mapping are printed out
-for (i in nomapeo)
+for (i in sort(nomapeo))
   print(paste("INFO: There was no PheWAS mapping for ICD-9 code", i, sep =" "))
+
+# Define nomapeo, where we save ICD9 codes that were not mapped to PheWAS 
+nomapeo<-mydata[,sort(nomapeo)]
+# and calculate how many times they are found in our data
+nomapeo["total",] <- colSums(nomapeo)
+nomapeo <- nomapeo["total",]
 
 # we can substitute ICD9 columns by PheWAS columns using mycopy defined in declaration.R
 myphewas <- cbind(mycopy,dataph)
 
 # redefine nombre_generado
+
+print("FYI: Processed files will be saved in cmbdclusteR/data/processed by default")
+
 nombre_generado <- paste(substring(nombre_generado, 1, nchar(nombre_generado)-4),"-phewas.csv", sep="")
-
-print("FYI: Processed file will be saved in cmbdclusteR/data/processed by default")
 fout <- file.path(directory, "data/processed", nombre_generado)
-
 # we write the output of phewas mapping to a defined file
 write.table(myphewas,fout,FALSE,sep=";",row.names = FALSE, fileEncoding = "UTF-8",dec=",")
+
+fout <- file.path(directory, "data/processed", paste(substring(nombre_generado,1,nchar(nombre_generado)-4),"-nomapeo.csv", sep=""))
+# we write nomapeo to a defined file
+write.table(nomapeo,fout,FALSE,sep=";",row.names = FALSE, fileEncoding = "UTF-8",dec=",")
 
 #-- remove variables that have been used, possibly using ls() (look ?remove) --
 remove(dataph)
