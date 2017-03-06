@@ -78,10 +78,6 @@ if(pos_age==0){
   pos_age <- ncol(mydata)
 }
 
-# Create new column with patient's stay in days
-mydata$Estancia <- round(as.numeric(as.Date(mydata[[pos_discharge]], "%d-%m-%Y")-as.Date(mydata[[pos_entry]], "%d-%m-%Y")))
-pos_stay <- ncol(mydata)
-
 
 # --------- THIS LOOP IS ONLY NEEDED IN OUR SETTINGS ----------
 # For each empty cell, we fill it with its upper cell value. This is due to the source data
@@ -93,6 +89,10 @@ for (i in 1:nrow(mydata))
       if (i > 1)
         mydata[i, j] <- mydata[i-1, j]
     }
+
+# Create new column with patient's stay in days
+mydata$Estancia <- round(as.numeric(as.Date(mydata[[pos_discharge]], "%d-%m-%Y")-as.Date(mydata[[pos_entry]], "%d-%m-%Y")))
+pos_stay <- ncol(mydata)
 
 # Add any kind of filtering that we want on the data, e.g. age > 18
 print("Choose an age filter (or press ENTER to select all ages): write L for LESS THAN, H for HIGHER THAN or B for BETWEEN:")

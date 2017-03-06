@@ -9,7 +9,7 @@ subsetPhewasVars<-function(mydata,nozero=TRUE,quitar_codigos, pos_first_field) {
   parcial<-mydata[1:(nrow(mydata)-3),pos_first_field:ncol(mydata)]
   
   # quitamos las variables que sean
-  if (quitar_codigos!="")
+  if (any(quitar_codigos!=""))
     parcial<-parcial[,-match(quitar_codigos,names(parcial))]
   
   if (nozero) {

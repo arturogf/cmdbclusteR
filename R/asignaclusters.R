@@ -122,6 +122,7 @@ if (!file.exists(file.path(directory, "data/output"))){
 # -------- define output files --------
 clusterfilter <- "ward.D" #REVISION, pedir por pantalla
 nombre_generado <- paste(substring(nombre_generado, 1, nchar(nombre_generado)-4), distancefilter, clusterfilter, itfilter, sep="-")
+stayboxplotfile <- file.path(directory, "data/output", paste(nombre_generado, "LOS-boxplot", ".pdf", sep=""))
 pdffile <- file.path(directory, "data/output", paste(nombre_generado, ".pdf", sep=""))
 ordifile <- file.path(directory, "data/output", paste(nombre_generado, "-ordiplot.pdf", sep=""))
 fclusters <- file.path(directory, "data/output", paste(nombre_generado, ".csv", sep=""))
@@ -250,6 +251,17 @@ colnames(statsclusters)[ncol(statsclusters)-2] <- "nepisodes"
 #salida$GRD <- mydata[row.names(parcial), pos_GRD]
 
 salida <- cbind(mycopy, salida)
+
+pdf(stayboxplotfile)
+boxplot(
+  salida[, pos_stay] ~ salida$cluster,
+  data = salida,
+  col = "lightgray",
+  main = "Boxplot LOS/cluster",
+  xlab = "Num. Cluster",
+  ylab = "Length of Stay"
+)
+dev.off()
 
 # We write the file with all the statitics per cluster
 write.table(salida,fclusters,FALSE,sep=";",row.names = FALSE, fileEncoding = "UTF-8",dec=",")
