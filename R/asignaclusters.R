@@ -46,9 +46,6 @@ parcial <- as.data.frame(output[[1]])
 mycopy <- as.data.frame(output[[2]])
 remove(output)
 
-# we count the number of patients
-num_patients <- nrow(parcial)
-
 # convert data frame to numeric matrix
 mij <- as.matrix(sapply(parcial, as.numeric))
 
@@ -165,8 +162,8 @@ for (i in 1:num_clusters) {
     clusters[[i]][, j] <- as.numeric(clusters[[i]][, j])
   }
   
-  # print the number of records
-  print(paste("nrows=", toString(nrow(clusters[[i]]), sep = " ")))
+  # print the number of records included in each cluster
+  print(paste("nrows in cluster ", toString(i), ":", toString(nrow(clusters[[i]]), sep = "")))
   
   #clusters[[i]]<-data.frame(salida[salida$cluster==i,],check.names = FALSE)
   #clusters[[i]]<-sapply(clusters[[i]][clusters[[i]]$cluster==i,],as.integer)
@@ -177,12 +174,13 @@ for (i in 1:num_clusters) {
   clusters[[i]]["Porcentaje", 1:ncol(clusters[[i]])] <- clusters[[i]]["Total", 1:ncol(clusters[[i]])] / (nrow(clusters[[i]]) - 1) *100
   
   # store the percentages for each cluster for all the phewas codes
-  statsclusters[i + 1, 1:ncol(clusters[[i]])] <-clusters[[i]]["Porcentaje", 1:ncol(clusters[[i]])]
+  statsclusters[i + 1, 1:ncol(clusters[[i]])] <-0
+  statsclusters[i + 1, 1:ncol(clusters[[i]])] <-clusters[[i]][nrow(clusters[[i]]), 1:ncol(clusters[[i]])]
   
-  # store the number of episodes in each cluster
+  # store the number of episodes in each cluster 
   statsclusters[i + 1, ncol(clusters[[i]]) + 1] <- nrow(clusters[[i]]) - 2
   
-  # We create a new colon of 0 to store de numbre of unique patients in each cluster
+  # We create a new column of 0 to store de number of unique patients in each cluster
   statsclusters[i + 1, ncol(clusters[[i]]) + 2] <- 0
   
   # look which pathologies' presence is over intra-cluster threshold and store its position in superan[[i]]
@@ -200,7 +198,7 @@ for (i in 1:num_clusters) {
     superan[[i]][x] <- statsclusters[i + 1, pos]
   }
   
-  # order superan[[i]] co in decreasing order of intra-cluster contribution
+  # order superan[[i]] in decreasing order of intra-cluster contribution
   superan[[i]] <- sort(superan[[i]], decreasing = T)
   
   # initialize column that will store description for the codes that are higher than defined threshold
@@ -235,6 +233,10 @@ for (i in 1:num_clusters) {
     }
   }
 }
+for (k in 1:(length(statsclusters)-3)){
+  posi <- which(mapeo$phewas_code == (names(statsclusters[,1:(length(statsclusters)-3)])[k]))
+  statsclusters[1,k]<- mapeo[posi[1],4]
+}
 
 # Rellenamos el significado de cada código phewas en la fila 1 de stats
 #for (i in 1:ncol(clusters[[2]]))
@@ -254,7 +256,7 @@ salida <- cbind(mycopy, salida)
 
 pdf(stayboxplotfile)
 boxplot(
-  salida[, pos_stay] ~ salida$cluster,
+  salida[, pos_stay] ~ salida$cluster, 
   data = salida,
   col = "lightgray",
   main = "Boxplot LOS/cluster",
