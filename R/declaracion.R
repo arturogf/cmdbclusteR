@@ -7,7 +7,7 @@ if (file.exists(file.path(directory, "setup.cfg"))){
     mydata = read.csv(f, header=TRUE, sep=";", as.is = TRUE)
     mydata[,pos_entry] <- gsub("/", "-", mydata[,pos_entry])
     mydata[,pos_discharge] <- gsub("/", "-", mydata[,pos_discharge])
-    mapeo = read.csv(fmapping, header=TRUE, sep="\t", as.is = TRUE, check.names=FALSE)
+    mapeo = read.csv(fmapping, header=TRUE, sep="\t", encoding="UTF-8", as.is = TRUE, check.names=FALSE)
     for (i in 1:ncol(mapeo)){
       class(mapeo[[i]]) <- "character"
     }
@@ -122,27 +122,32 @@ if(intervalo == "L"){
 print("Choose a gender filter: write M for MALE, F for FEMALE and B for BOTH:")
 gender <- readLines(n=1, ok=FALSE)
 if(gender == "M"){
- mydata <- mydata[ which(mydata[[pos_gender]]=="Hombre" | mydata[[pos_gender]]==1), ]
+ mydata <- mydata[ which(tolower(mydata[[pos_gender]])=="hombre" | mydata[[pos_gender]]==1), ]
 genderfilter <- "male"
 }else if(gender == "F"){
- mydata <- mydata[ which(mydata[[pos_gender]]=="Mujer" | mydata[[pos_gender]]==2), ]
+ mydata <- mydata[ which(tolower(mydata[[pos_gender]])=="mujer" | mydata[[pos_gender]]==2), ]
  genderfilter <- "female"
 }else{
  genderfilter <- "both"
 }
 
 # Select GRD filter
-if(pos_GRD!=0){
- print("Select GRD filter (if filtering by several GRD values, separate them by ','): ")
- GRDvalues <- trimws(unlist(strsplit(readLines(n=1,ok=FALSE), split=",")))
- if(length(GRDvalues)==0){
-   GRDfilter <- "allGRD"
- }else{
-   GRDchar <- paste(as.character(sort(as.numeric(GRDvalues))), collapse="-")
-   GRDfilter <- paste("GRD", GRDchar, sep="-")
- }
- matches <- unique(grep(paste(GRDvalues,collapse="|"), mydata[[pos_GRD]]))
- mydata <- mydata[matches,]
+if(pos_GRD!=0) {
+  print("Select GRD filter (if filtering by several GRD values, separate them by ','): ")
+  GRDvalues <-
+    trimws(unlist(strsplit(readLines(n = 1, ok = FALSE), split = ",")))
+  if (length(GRDvalues) == 0) {
+    GRDfilter <- "allGRD"
+  } else{
+    GRDchar <-
+      paste(as.character(sort(as.numeric(GRDvalues))), collapse = "-")
+    GRDfilter <- paste("GRD", GRDchar, sep = "-")
+  }
+  matches <-
+    unique(grep(paste(GRDvalues, collapse = "|"), mydata[[pos_GRD]]))
+  mydata <- mydata[matches, ]
+} else{
+  GRDfilter<-""
 }
 
 #Select ICD9 filter
@@ -154,7 +159,7 @@ if(filtermode=="1"){
  if(length(ICD9values)==0){
    diagnosefilter <- "allICD9"
  }else{
-   ICD9char <- paste(as.character(sort(as.numeric(ICD9values))), collapse="-")
+   ICD9char <- paste(as.character(sort(as.character(ICD9values))), collapse="-")
    diagnosefilter <- paste("ICD9", ICD9char, sep="-")
  }
  d1 <- rep(0, nrow(mydata))
