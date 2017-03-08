@@ -38,7 +38,7 @@ pos_first_field <- pos_first_ICD9
 
 # Posible codes to drop in mood disorder (ICD9 = 296)
 #codes_to_drop <- c("401.9","272.0","250.0")
-codes_to_drop<-""
+codes_to_drop<-c("FFF","999")
 
 # We subset the feature matrix, dropping the selected variables to remove and the rows with all columns==0
 output <- subsetPhewasVars(mydata, TRUE, codes_to_drop, pos_first_field)
@@ -252,15 +252,47 @@ colnames(statsclusters)[ncol(statsclusters)-2] <- "nepisodes"
 
 salida <- cbind(mycopy, salida)
 
-pdf(stayboxplotfile)
-boxplot(
-  salida[, pos_stay] ~ salida$cluster,
-  data = salida,
-  col = "lightgray",
-  main = "Boxplot LOS/cluster",
-  xlab = "Num. Cluster",
-  ylab = "Length of Stay"
-)
+# we create labels for each cluster where we include in brackets the number of episodes
+labls <- c()
+for (i in seq(1:length(unique(salida$cluster))))
+  labls <-
+  c(labls,
+    paste(
+      "cluster",
+      as.character(i),
+      "[n=",
+      as.character(length(which(salida$cluster == i))),
+      "]",
+      sep = ""
+    ))
+
+#diagnostico1<-factor(substr(salida$D1, 1, 3))
+
+pdf(stayboxplotfile, paper = "a4r")
+
+#plot the boxplot
+ggplot(salida,
+       aes(
+         group = salida$cluster,
+         x = salida$cluster,
+         y = salida[, pos_stay]
+       ))  +
+  coord_flip() +
+  geom_boxplot(
+   #aes(fill = diagnostico1),
+    #fill="white",
+    colour = "black",
+    outlier.colour = "red",
+    outlier.shape = 2
+  ) +
+  stat_boxplot(geom = 'errorbar') +
+  geom_jitter(width = 0.2, height=0.2) +
+  #geom_point(position=position_dodge(width=0.75),aes(group=salida$cluster))+
+  labs(title = "Boxplot: LOS per cluster") +
+  ylab("Length of Stay(LOS)") +
+  scale_x_continuous(name = "Num. cluster",
+                     breaks = seq(1:length(unique(salida$cluster))),
+                     labels = labls)
 dev.off()
 
 # We write the file with all the statitics per cluster
