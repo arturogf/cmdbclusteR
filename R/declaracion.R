@@ -173,13 +173,28 @@ if(filtermode=="1"){
  if(length(ICD9values)==0){
    diagnosefilter <- "allICD9"
  }else{
-   ICD9char <- paste(as.character(sort(as.numeric(ICD9values))), collapse="-")
+   ICD9char <- paste(as.character(sort(as.character(ICD9values))), collapse="-")
    diagnosefilter <- paste("ICD9", ICD9char, sep="-")
  }
  matchesICD9 <- unique(grep(paste(ICD9values,collapse="|"), mydata[[pos_ICD9]]))
  mydata <- mydata[matchesICD9,]
  filtermode <- "dall"
 }
+
+# -------- Define variables that we do not want to consider when calculating distances (similarity) ---------
+
+# Once you have filtered your data:
+# you could want to remove some codes that appear not to contribute to get a conclussion out of data
+# e.g. for SIADH, we can remove, hiponatremia, essential hipertension, diabetes, 
+# hiperlipidemia, hipercolesterolemia, tobacco disorder
+
+# Posible codes to drop in Hiponatremia  (SIADH: ICD9 = 253.6, PHEWAS=253.7)
+#codes_to_drop <- c("276.12", "401.1", "250.2", "272.11", "272.1", "318", "253.7")
+
+# Posible codes to drop in mood disorder (ICD9 = 296)
+#codes_to_drop <- c("401.9","272.0","250.0")
+
+codes_to_drop <- ""
 
 mycopy <- mydata
 pos_first_ICD9 <- ncol(mydata) + 1

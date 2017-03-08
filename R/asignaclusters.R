@@ -28,18 +28,6 @@ remove(prevalentes)
 # we suppose that first column with ICD9 separated codes is the following to Dx.Todos
 pos_first_field <- pos_first_ICD9
   
-# -------- Define variables that we do not want to consider when calculating distances (similarity) ---------
-
-# e.g. for SIADH, we can remove, hiponatremia, essential hipertension, diabetes, 
-# hiperlipidemia, hipercolesterolemia, tobacco disorder
-
-# Posible codes to drop in Hiponatremia  (SIADH: ICD9 = 253.6, PHEWAS=253.7)
-#codes_to_drop <- c("276.12", "401.1", "250.2", "272.11", "272.1", "318", "253.7")
-
-# Posible codes to drop in mood disorder (ICD9 = 296)
-#codes_to_drop <- c("401.9","272.0","250.0")
-codes_to_drop<-""
-
 # We subset the feature matrix, dropping the selected variables to remove and the rows with all columns==0
 output <- subsetPhewasVars(mydata, TRUE, codes_to_drop, pos_first_field)
 parcial <- as.data.frame(output[[1]])

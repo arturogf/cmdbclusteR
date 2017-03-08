@@ -9,9 +9,18 @@ subsetPhewasVars<-function(mydata,nozero=TRUE,quitar_codigos, pos_first_field) {
   parcial<-mydata[1:(nrow(mydata)-3),pos_first_field:ncol(mydata)]
   
   # quitamos las variables que sean
-  if (any(quitar_codigos!=""))
-    parcial<-parcial[,-match(quitar_codigos,names(parcial))]
-  
+  if (any(quitar_codigos!="")){
+    pos_to_drop <- match(quitar_codigos,names(parcial))
+    pos_to_drop <- setdiff(pos_to_drop, NA)
+    # for (i in 1:length(quitar_codigos)){
+    #   if(is.na(pos_to_drop[i])){
+    #     pos_to_drop <- setdiff(pos_to_drop, NA)
+    #   }
+    # }
+    if(length(pos_to_drop)!=0){
+      parcial<-parcial[,-pos_to_drop]
+    }
+  }
   if (nozero) {
     # buscamos todas las filas que tengan todo a cero y las eliminamos. Esto permite que no haya NAs luego
     zeros<-which(apply(parcial[,], MARGIN = 1, function(x) any(x != 0))==FALSE)
