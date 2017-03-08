@@ -34,11 +34,11 @@ pos_first_field <- pos_first_ICD9
 # hiperlipidemia, hipercolesterolemia, tobacco disorder
 
 # Posible codes to drop in Hiponatremia  (SIADH: ICD9 = 253.6, PHEWAS=253.7)
-#codes_to_drop <- c("276.12", "401.1", "250.2", "272.11", "272.1", "318", "253.7")
+codes_to_drop <- c("276.12", "401.1", "250.2", "272.11", "272.1", "318", "253.7")
 
 # Posible codes to drop in mood disorder (ICD9 = 296)
 #codes_to_drop <- c("401.9","272.0","250.0")
-codes_to_drop<-c("FFF","999")
+#codes_to_drop<-c("FFF","999")
 
 # We subset the feature matrix, dropping the selected variables to remove and the rows with all columns==0
 output <- subsetPhewasVars(mydata, TRUE, codes_to_drop, pos_first_field)
@@ -195,7 +195,7 @@ for (i in 1:num_clusters) {
   # update cells of superan[[i]] by replacing stored positions with values 
   for (x in 1:length(superan[[i]])) {
     pos <- superan[[i]][x]
-    superan[[i]][x] <- statsclusters[i + 1, pos]
+    superan[[i]][x] <- statsclusters[i + 1, as.numeric(pos)]
   }
   
   # order superan[[i]] in decreasing order of intra-cluster contribution
@@ -217,6 +217,10 @@ for (i in 1:num_clusters) {
       # concatenate each phewas description for all codes that are higher than threshold 
       statsclusters[i+1,ncol(clusters[[i]])+3]<-paste(statsclusters[i+1,ncol(clusters[[i]])+3],superan[[i]][x], sep=" | ")
     }
+    for (k in 1:(length(statsclusters)-3)){
+      posi <- which(mapeo[,3] == (names(statsclusters[,1:(length(statsclusters)-3)])[k]))
+      statsclusters[1,k]<- mapeo[posi[1],4]
+    }
   }
   else {
     # we update superan[i] cells again, preceeding them with each phewas code description
@@ -231,12 +235,15 @@ for (i in 1:num_clusters) {
       # concatenate each phewas description for all codes that are higher than threshold 
       statsclusters[i+1,ncol(clusters[[i]])+3]<-paste(statsclusters[i+1,ncol(clusters[[i]])+3],superan[[i]][x], sep=" | ")
     }
+    
+    for (k in 1:(length(statsclusters)-3)){
+      posi <- which(mapeo[,1] == (names(statsclusters[,1:(length(statsclusters)-3)])[k]))
+      statsclusters[1,k]<- mapeo[posi,2]
+    }
   }
 }
-for (k in 1:(length(statsclusters)-3)){
-  posi <- which(mapeo$phewas_code == (names(statsclusters[,1:(length(statsclusters)-3)])[k]))
-  statsclusters[1,k]<- mapeo[posi[1],4]
-}
+
+
 
 # Rellenamos el significado de cada código phewas en la fila 1 de stats
 #for (i in 1:ncol(clusters[[2]]))
