@@ -38,7 +38,7 @@ pos_first_field <- pos_first_ICD9
 
 # Posible codes to drop in mood disorder (ICD9 = 296)
 #codes_to_drop <- c("401.9","272.0","250.0")
-codes_to_drop<-c("FFF","999")
+codes_to_drop<-c("")
 
 # We subset the feature matrix, dropping the selected variables to remove and the rows with all columns==0
 output <- subsetPhewasVars(mydata, TRUE, codes_to_drop, pos_first_field)
@@ -268,6 +268,7 @@ for (i in seq(1:length(unique(salida$cluster))))
       sep = ""
     ))
 
+library("ggplot2")
 #diagnostico1<-factor(substr(salida$D1, 1, 3))
 
 pdf(stayboxplotfile, paper = "a4r")
