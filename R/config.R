@@ -20,7 +20,7 @@ if(as.numeric(substr(version$minor,1,1))>=3){
   library("tcltk")
 }
 
-library("shiny")
+#library("shiny")
 
 # Select directory where cmbdclusteR-master was downloaded to
 print("A window will pop up to select folder where cmbdclusteR-master was downloaded to.")

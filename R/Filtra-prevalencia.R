@@ -66,21 +66,22 @@ if (!(input_type == "PHEWAS")) {
       c <- mapeo[pos, 4]
     }
     desc <- c(desc, a)
-    phewas <- c(phewas, b)
-    phewas_desc <- c(phewas_desc, c)
+    #phewas <- c(phewas, b)
+    #phewas_desc <- c(phewas_desc, c)
   }
-  tabla <- data.frame(codigos, desc, phewas, phewas_desc, percent)
+  #tabla <- data.frame(codigos, desc, phewas, phewas_desc, percent)
+  tabla <- data.frame(codigos, desc, percent)
   
-  pos <- 1
-  tabla[["phewas_percent"]] <- rep(0,nrow(tabla))
-  for(i in 1:nrow(tabla)){
-    if(tabla[i,"phewas"] == tabla[pos,"phewas"]){
-      tabla[pos, "phewas_percent"] <-tabla[pos, "phewas_percent"] + tabla[i,"percent"] 
-    }else{
-      pos <- i
-      tabla[pos, "phewas_percent"] <-tabla[pos, "phewas_percent"] + tabla[i,"percent"]
-    }
-  }
+    # pos <- 1
+  # tabla[["phewas_percent"]] <- rep(0,nrow(tabla))
+  # for(i in 1:nrow(tabla)){
+  #   if(tabla[i,"phewas"] == tabla[pos,"phewas"]){
+  #     tabla[pos, "phewas_percent"] <-tabla[pos, "phewas_percent"] + tabla[i,"percent"] 
+  #   }else{
+  #     pos <- i
+  #     tabla[pos, "phewas_percent"] <-tabla[pos, "phewas_percent"] + tabla[i,"percent"]
+  #   }
+  # }
 }
 
 # If file is already PHEWAS
