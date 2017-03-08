@@ -173,7 +173,7 @@ if(filtermode=="1"){
  if(length(ICD9values)==0){
    diagnosefilter <- "allICD9"
  }else{
-   ICD9char <- paste(as.character(sort(as.numeric(ICD9values))), collapse="-")
+   ICD9char <- paste(as.character(sort(as.character(ICD9values))), collapse="-")
    diagnosefilter <- paste("ICD9", ICD9char, sep="-")
  }
  matchesICD9 <- unique(grep(paste(ICD9values,collapse="|"), mydata[[pos_ICD9]]))
