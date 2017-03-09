@@ -34,12 +34,12 @@ pos_first_field <- pos_first_ICD9
 # hiperlipidemia, hipercolesterolemia, tobacco disorder
 
 # Posible codes to drop in Hiponatremia  (SIADH: ICD9 = 253.6, PHEWAS=253.7)
-codes_to_drop <- c("276.12", "401.1", "250.2", "272.11", "272.1", "318", "253.7")
+#codes_to_drop <- c("276.12", "401.1", "250.2", "272.11", "272.1", "318", "253.7")
 
 # Posible codes to drop in mood disorder (ICD9 = 296)
 #codes_to_drop <- c("401.9","272.0","250.0")
 #codes_to_drop<-c("FFF","999")
-#codes_to_drop<-c("")
+codes_to_drop<-c("253.7","276.12")
 
 # We subset the feature matrix, dropping the selected variables to remove and the rows with all columns==0
 output <- subsetPhewasVars(mydata, TRUE, codes_to_drop, pos_first_field)
@@ -199,25 +199,29 @@ for (i in 1:num_clusters) {
     superan[[i]][x] <- statsclusters[i + 1, as.numeric(pos)]
   }
   
+  superan[[i]]<-sapply(superan[[i]],as.numeric)
+  
   # order superan[[i]] in decreasing order of intra-cluster contribution
   superan[[i]] <- sort(superan[[i]], decreasing = T)
   
   # initialize column that will store description for the codes that are higher than defined threshold
   statsclusters[i + 1, ncol(clusters[[i]]) + 3] <- ""
-  
+
+  cadena<-""
   if (input_type=="PHEWAS"){
     # we update superan[i] cells again, preceeding them with each phewas code description
     for (x in 1:length(superan[[i]])) {
       pos <- superan[[i]][x]
-      superan[[i]][x] <-
-        paste(mapeo[which(mapeo[["phewas_code"]] == names(superan[[i]][x])), "phewas_string"][1],
-              as.character(round(as.numeric(superan[[i]][x]), 2)),
+      cadena <-
+        paste(cadena,mapeo[which(mapeo[["phewas_code"]] == names(superan[[i]][x])), "phewas_string"][1],
+              as.character(round(superan[[i]][x], digits=1)),
               sep = " (")
-      superan[[i]][x] <- paste(superan[[i]][x], ")", sep = "")
-      
-      # concatenate each phewas description for all codes that are higher than threshold 
-      statsclusters[i+1,ncol(clusters[[i]])+3]<-paste(statsclusters[i+1,ncol(clusters[[i]])+3],superan[[i]][x], sep=" | ")
+      cadena <- paste(cadena, "))|", sep = "")
     }
+      # concatenate each phewas description for all codes that are higher than threshold 
+      statsclusters[i+1,ncol(clusters[[i]])+3]<-cadena
+    
+    # fill labels for each phewas code
     for (k in 1:(length(statsclusters)-3)){
       posi <- which(mapeo[,3] == (names(statsclusters[,1:(length(statsclusters)-3)])[k]))
       if (length(posi))
@@ -230,16 +234,16 @@ for (i in 1:num_clusters) {
     # we update superan[i] cells again, preceeding them with each phewas code description
     for (x in 1:length(superan[[i]])) {
       pos <- superan[[i]][x]
-      superan[[i]][x] <-
-        paste(mapeo[which(mapeo[["icd9"]] == names(superan[[i]][x])), "icd9_string"][1],
-              as.character(round(as.numeric(superan[[i]][x]), 2)),
+      cadena <-
+        paste(cadena,mapeo[which(mapeo[["icd9"]] == names(superan[[i]][x])), "icd9_string"][1],
+              as.character(round(as.numeric(superan[[i]][x]), digits=1)),
               sep = " (")
-      superan[[i]][x] <- paste(superan[[i]][x], ")", sep = "")
+      cadena <- paste(cadena, "))|", sep = "")
       
       # concatenate each phewas description for all codes that are higher than threshold 
-      statsclusters[i+1,ncol(clusters[[i]])+3]<-paste(statsclusters[i+1,ncol(clusters[[i]])+3],superan[[i]][x], sep=" | ")
+      statsclusters[i+1,ncol(clusters[[i]])+3]<-cadena
     }
-    # rellenar con etiquetas de icd9_string la segunda fila
+    # fill with labels icd9_string second row of the file
     for (k in 1:(length(statsclusters)-3)){
       posi <- which(mapeo[,1] == (names(statsclusters[,1:(length(statsclusters)-3)])[k]))
       if (length(posi))
