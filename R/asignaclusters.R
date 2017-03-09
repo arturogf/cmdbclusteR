@@ -220,7 +220,10 @@ for (i in 1:num_clusters) {
     }
     for (k in 1:(length(statsclusters)-3)){
       posi <- which(mapeo[,3] == (names(statsclusters[,1:(length(statsclusters)-3)])[k]))
-      statsclusters[1,k]<- mapeo[posi[1],4]
+      if (length(posi))
+        statsclusters[1,k]<- mapeo[posi[1],4]
+      else
+        statsclusters[1,k]<- names(statsclusters[,1:(length(statsclusters)-3)])[k]
     }
   }
   else {
@@ -236,10 +239,13 @@ for (i in 1:num_clusters) {
       # concatenate each phewas description for all codes that are higher than threshold 
       statsclusters[i+1,ncol(clusters[[i]])+3]<-paste(statsclusters[i+1,ncol(clusters[[i]])+3],superan[[i]][x], sep=" | ")
     }
-    
+    # rellenar con etiquetas de icd9_string la segunda fila
     for (k in 1:(length(statsclusters)-3)){
       posi <- which(mapeo[,1] == (names(statsclusters[,1:(length(statsclusters)-3)])[k]))
-      statsclusters[1,k]<- mapeo[posi,2]
+      if (length(posi))
+        statsclusters[1,k]<- mapeo[posi,2]
+      else
+        statsclusters[1,k]<-names(statsclusters[,1:(length(statsclusters)-3)])[k]
     }
   }
 }
@@ -319,8 +325,12 @@ for (i in 1:num_clusters) {
   statsclusters[i + 1, ncol(clusters[[i]]) + 2] <- length(unique(as.data.frame(salida[which(salida$cluster == i), ])[,pos_numeroHC]))
   #print(paste("i: ",statsclusters[i + 1, ncol(clusters[[i]]) + 2]))
 }
-# we remove the patient record number from last column
-#salida <- salida[, -ncol(salida)]            
+
+# we create two different dataframes to be able to convert the 2nd to numeric        
+statsclusters1<-statsclusters[1,]
+statsclusters2<-statsclusters[2:nrow(statsclusters),]
+statsclusters2[,1:(ncol(statsclusters2)-3)]<-sapply(statsclusters2[,1:(ncol(statsclusters2)-3)], as.numeric)
 
 # We write the file with all the statitics per cluster
-write.table(statsclusters,fstats,FALSE,sep=";",row.names = FALSE, fileEncoding = "UTF-8",dec=",")
+write.table(statsclusters1,fstats,FALSE,sep=";",row.names = FALSE, fileEncoding = "UTF-8",dec=",")
+write.table(statsclusters2,fstats,append=TRUE,sep=";",row.names = FALSE, col.names=FALSE, fileEncoding = "UTF-8",dec=",")
