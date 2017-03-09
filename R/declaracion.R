@@ -114,12 +114,12 @@ if(intervalo == "L"){
  umbral2 <- as.numeric(readLines(n=1, ok=FALSE))
  mydata <- mydata[ which(mydata[[pos_age]]>umbral1 & mydata[[pos_age]]<umbral2), ]
  agefilter <- paste("between", umbral1, "and", umbral2, sep="")
-}else if(intervalo==""){
+}else{
  agefilter<-"allages"
 }
 
 #Or choose a gender filter
-print("Choose a gender filter: write M for MALE, F for FEMALE and B for BOTH:")
+print("Choose a gender filter: write M for MALE, F for FEMALE and B for BOTH (default):")
 gender <- readLines(n=1, ok=FALSE)
 if(gender == "M"){
  mydata <- mydata[ which(tolower(mydata[[pos_gender]])=="hombre" | mydata[[pos_gender]]==1), ]
@@ -133,12 +133,12 @@ genderfilter <- "male"
 
 # Select GRD filter
 if(pos_GRD!=0) {
-  print("Select GRD filter (if filtering by several GRD values, separate them by ','): ")
+  print("Select GRD filter (if filtering by several GRD values, separate them by ',') or press ENTER to select all GRD values: ")
   GRDvalues <-
     trimws(unlist(strsplit(readLines(n = 1, ok = FALSE), split = ",")))
   if (length(GRDvalues) == 0) {
     GRDfilter <- "allGRD"
-  } else{
+  }else{
     GRDchar <-
       paste(as.character(sort(as.numeric(GRDvalues))), collapse = "-")
     GRDfilter <- paste("GRD", GRDchar, sep = "-")
@@ -151,7 +151,7 @@ if(pos_GRD!=0) {
 }
 
 #Select ICD9 filter
-print("Choose 1 for filtering just ICD9 found in D1 (primary diagnose) or 2 for ICD9 found in all diagnoses:")
+print("Choose 1 for filtering just ICD9 found in D1 (primary diagnose) or 2 for ICD9 found in all diagnoses (default):")
 filtermode <- readLines(n=1, ok=FALSE)
 print("Select ICD9 filter (if filtering by several ICD9 values, separate them by ','): ")
 ICD9values <- trimws(unlist(strsplit(readLines(n=1,ok=FALSE), split=",")))
