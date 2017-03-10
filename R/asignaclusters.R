@@ -107,7 +107,6 @@ if (!file.exists(file.path(directory, "data/output"))){
 # -------- define output files --------
 clusterfilter <- "ward.D" #REVISION, pedir por pantalla
 nombre_generado <- paste(substring(nombre_generado, 1, nchar(nombre_generado)-4), distancefilter, clusterfilter, itfilter, sep="-")
-stayboxplotfile <- file.path(directory, "data/output", paste(nombre_generado, "LOS-boxplot", ".pdf", sep=""))
 pdffile <- file.path(directory, "data/output", paste(nombre_generado, ".pdf", sep=""))
 ordifile <- file.path(directory, "data/output", paste(nombre_generado, "-ordiplot.pdf", sep=""))
 fclusters <- file.path(directory, "data/output", paste(nombre_generado, ".csv", sep=""))
@@ -115,7 +114,8 @@ fstats <- file.path(directory, "data/output", paste(nombre_generado, "-stats.csv
 
 # plot dendogram and red line for cut-off height h
 pdf(pdffile)
-simprof.plot(res.ward.siadh)
+c<-simprof.plot(res.ward.siadh)
+print(c)
 dev.off()
 
 # num_clusters is taken from the output obtained from simprof execution
@@ -273,36 +273,10 @@ for (i in seq(1:length(unique(salida$cluster))))
       sep = ""
     ))
 
-library("ggplot2")
-#diagnostico1<-factor(substr(salida$D1, 1, 3))
+pos_cluster = which(names(salida)=="cluster")
 
-pdf(stayboxplotfile, paper = "a4r")
-
-#plot the boxplot
-ggplot(salida,
-       aes(
-         group = salida$cluster,
-         x = salida$cluster,
-         y = salida[, pos_stay]
-       ))  +
-  coord_flip() +
-  geom_boxplot(
-   #aes(fill = diagnostico1),
-    #fill="white",
-    colour = "black",
-    outlier.colour = "red",
-    outlier.shape = 2
-  ) +
-  stat_boxplot(geom = 'errorbar') +
-  geom_jitter(width = 0.2, height=0.2) +
-  #geom_point(position=position_dodge(width=0.75),aes(group=salida$cluster))+
-  labs(title = "Boxplot: LOS per cluster") +
-  ylab("Length of Stay(LOS)") +
-  scale_x_continuous(name = "Num. cluster",
-                     breaks = seq(1:length(unique(salida$cluster))),
-                     labels = labls)
-
-dev.off()
+#Coment this line if you don´t want the boxplot of length of stay
+source(file.path(directory, "/R/Boxplot.R"))
 
 # We write the file with all the statitics per cluster
 write.table(salida,fclusters,FALSE,sep=";",row.names = FALSE, fileEncoding = "UTF-8",dec=",")
@@ -325,3 +299,6 @@ statsclusters2[,1:(ncol(statsclusters2)-3)]<-sapply(statsclusters2[,1:(ncol(stat
 # We write the file with all the statitics per cluster
 write.table(statsclusters1,fstats,FALSE,sep=";",row.names = FALSE, fileEncoding = "UTF-8",dec=",")
 write.table(statsclusters2,fstats,append=TRUE,sep=";",row.names = FALSE, col.names=FALSE, fileEncoding = "UTF-8",dec=",")
+
+#Coment this line if you don´t want the histograms for each cluster and the heatmap of GRD.
+source(file.path(directory, "/R/GRD_hist.R"))
