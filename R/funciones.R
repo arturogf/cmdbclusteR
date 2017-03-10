@@ -12,11 +12,6 @@ subsetPhewasVars<-function(mydata,nozero=TRUE,quitar_codigos, pos_first_field) {
   if (any(quitar_codigos!="")){
     pos_to_drop <- match(quitar_codigos,names(parcial))
     pos_to_drop <- setdiff(pos_to_drop, NA)
-    # for (i in 1:length(quitar_codigos)){
-    #   if(is.na(pos_to_drop[i])){
-    #     pos_to_drop <- setdiff(pos_to_drop, NA)
-    #   }
-    # }
     if(length(pos_to_drop)!=0){
       parcial<-parcial[,-pos_to_drop]
     }
