@@ -43,7 +43,7 @@ if(nrow(grd.freq)==1){
 #We obtain a png barplot for each cluster
   png(nombre_generado)
   barplot(dtgrd[1:10,2],names.arg = substr(dtgrd[1:10,1],1,20),
-        main=paste("GRD más frecuentes para cluster",i),ylab="Frecuencia(%)",las=2)
+        main=paste("Frecuent GRD codes for cluster ",i),ylab="Frecuencia(%)",las=2)
   dev.off()
 }
 
@@ -74,7 +74,7 @@ nombre_generado_heat <-
 png(nombre_generado_heat)
 
 #We generate a heatmap with de prevalent GRD codes
-ggplot(heatdata, aes(x = cluster, y = substr(heatdata[["GRD"]],1,20))) + 
+b<-ggplot(heatdata, aes(x = cluster, y = substr(heatdata[["GRD"]],1,20))) + 
   geom_tile(aes(fill = heat), colour="white") + 
   theme(panel.grid = element_blank()) +
   theme(panel.background = element_blank()) +
@@ -86,5 +86,5 @@ ggplot(heatdata, aes(x = cluster, y = substr(heatdata[["GRD"]],1,20))) +
   theme(panel.grid.major = element_line(colour = "white")) +
   geom_vline(xintercept = seq(0.5,num_clusters+0.5), colour = "grey") +
   geom_hline(yintercept = seq(0.5,num_GRD+0.5), colour = "grey")
-
+print(b)
 dev.off()
