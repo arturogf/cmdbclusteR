@@ -49,6 +49,28 @@ nomapeo<-mydata[,sort(nomapeo)]
 # and calculate how many times they are found in our data
 nomapeo["total",] <- colSums(nomapeo)
 nomapeo <- nomapeo["total",]
+#--- code below to recover prevalent codes that were not mapped---
+nomapeo["porcentaje",] <- ((nomapeo["total",])*100)/(nrow(mydata))
+nomapeo <- nomapeo[(nrow(nomapeo)-1):nrow(nomapeo),]
+print(paste("There was no PheWAS mapping for", ncol(nomapeo), "ICD9 codes."))
+
+# reconsider ICD9 codes that were not mapped to PheWAS but have higher percentaje than selected prevalence threshold
+remapped <- vector()
+names <- vector()
+for (i in 1:ncol(nomapeo)){
+  if(nomapeo["porcentaje",i] >= threshold_prev){
+    dataph[[names(nomapeo)[i]]] <- mydata[,i]
+    remapped <- c(remapped, i)
+    names <- c(names, names(nomapeo)[i])
+    print(paste("ICD9 code", names(nomapeo)[i], 
+                "has been reconsidered given its prevalence is higher than prev_threshold selected:", 
+                round(nomapeo["porcentaje",i],2)))
+  }
+}
+names(remapped) <- names
+nomapeo <- nomapeo[,-remapped]
+print(paste("Recovered the", length(remapped), "ICD9 codes specified above."))
+#--- code above to recover prevalent codes that were not mapped---
 
 # we can substitute ICD9 columns by PheWAS columns using mycopy defined in declaration.R
 myphewas <- cbind(mycopy,dataph)

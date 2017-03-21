@@ -4,7 +4,7 @@
 #' @param quitar_codigos a vector of variables not to be considered in the distance function
 #' @param post_first_field the column that has the first Phewas code
 #' @return parcial the filtered dataframe
-subsetPhewasVars<-function(mydata,nozero=TRUE,quitar_codigos, pos_first_field) {
+subsetPhewasVars<-function(mydata,nozero=TRUE,dupli=FALSE,quitar_codigos, pos_first_field) {
   # seleccionamos el subconjunto de las variables icd9
   parcial<-mydata[1:(nrow(mydata)-3),pos_first_field:ncol(mydata)]
   
@@ -20,10 +20,21 @@ subsetPhewasVars<-function(mydata,nozero=TRUE,quitar_codigos, pos_first_field) {
     # buscamos todas las filas que tengan todo a cero y las eliminamos. Esto permite que no haya NAs luego
     zeros<-which(apply(parcial[,], MARGIN = 1, function(x) any(x != 0))==FALSE)
     if (length(zeros)) {
+      print(paste(as.character(length(zeros)),"samples were dropped before clustering because all values are abscent (zero)",sep=" "))
       parcial<-parcial[-zeros,]
       mycopy<-mycopy[-zeros,]
     }
   }
+  
+  if (dupli) {
+    duplis<-which(duplicated(parcial)==TRUE)
+    if (length(duplis)) {
+      print(paste(as.character(length(duplis)),"samples were dropped before clustering because they were duplicated (all column values equal to a previous sample)",sep=" "))
+      parcial<-parcial[-duplis,]
+      mycopy<-mycopy[-duplis,]
+    }
+  }
+  
   output <- list(parcial, mycopy)
   return(output)
 }
@@ -42,10 +53,16 @@ evaluaInternal<-function(num_clusters,d,num_bootstrap,submethod) {
   partitions<-list()
   criteria<-list()
   for (i in 2:num_clusters) {
-    partitions[[i]] <- clusterboot(d, B=num_bootstrap,bootmethod = "subset", 
-                                   subtuning=floor(nrow(mij)/2), 
+    partitions[[i]] <- clusterboot(d, 
+                                   B=num_bootstrap,
+                                   bootmethod = "boot", 
+                                   #subtuning=floor(nrow(mij)*0.2), 
                                    bscompare = TRUE,
-                                   multipleboot = TRUE, distances=TRUE,clustermethod = hclustCBI, method=submethod, k=i) 
+                                   multipleboot = TRUE, 
+                                   distances=TRUE,
+                                   clustermethod = hclustCBI, 
+                                   method=submethod, 
+                                   k=i) 
     criteria[[i]]<-intCriteria(mij,partitions[[i]]$partition,"all")
   }
   

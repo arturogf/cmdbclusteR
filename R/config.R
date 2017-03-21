@@ -3,7 +3,7 @@
 # Note: The script should be called before executing cmbdclusteR
 rm(list=ls())
 
-list.of.packages <- c("ade4","clustsig","fpc","prabclus","cluster","clusterCrit","DMwR","HighDimOut", "shiny", "ggplot2","vegan")
+list.of.packages <- c("ade4","clustsig","fpc","prabclus","cluster","clusterCrit","DMwR","HighDimOut", "ggplot2","vegan")
 
 if(as.numeric(substr(version$minor,1,1))>=3){
   list.of.packages[length(list.of.packages)+1] <- "tcltk2"

@@ -29,6 +29,14 @@ if(!(file.exists(file.path(directory, "setup.cfg"))) | answer=="F"){
     class(mapeo[[i]]) <- "character"
   }
   
+  # --------- THIS LOOP IS ONLY NEEDED IN OUR SETTINGS ----------
+  # For each empty cell, we fill it with its upper cell value. This is due to the source data
+  # having been grouped by date. When exporting excel data to csv, the lower grouped data values are lost.
+  #cont <- list()
+  #for (j in 1:pos_discharge)
+  #  cont[[j]]<-vector()
+
+  
   # Define the number of column that hosts the patient ID / NHC
   print("Number of column that hosts the NHC:")
   pos_numeroHC <- as.numeric(readLines(n=1, ok=FALSE))
@@ -73,6 +81,26 @@ if(!(file.exists(file.path(directory, "setup.cfg"))) | answer=="F"){
   save(f, fmapping, pos_age, pos_birthdate, pos_discharge, pos_entry, pos_gender, pos_GRD, pos_ICD9, pos_numeroHC, file=file.path(directory, "setup.cfg"))
 }
 
+cont <- 0
+print("Filling empty cells if found:")
+for (i in 1:nrow(mydata))
+  for (j in 1:pos_discharge)
+    if (is.na(mydata[i, j]) | mydata[i, j] == "") {
+      if (i > 1){
+        mydata[i, j] <- mydata[i-1, j]
+        cont <- cont + 1
+        cat(".")
+        #print(paste("columna modificada",names(mydata)[j],sep=" "))
+        #cont[[j]] <- c(cont[[j]],i)
+      }
+    }
+cat("\n")
+print(paste(cont, "cells have been filled with upper value."))
+#for (i in 1:pos_discharge)
+#  print(paste(cont[i], names(mydata)[i], "cells have been filled with upper row."))
+#setdiff(cont[[1]],cont[[8]])
+
+
 # Add any kind of filtering that we want on the data, e.g. age > 18
 
 # Choose a gender filter
@@ -89,7 +117,7 @@ if(gender == "M"){
 }
 
 # Select GRD filter
-if(!(is.na(pos_GRD))) {
+if(!(pos_GRD==0)) {
   print("Select GRD filter (if filtering by several GRD values, separate them by ',') or press ENTER to select all GRD values: ")
   GRDvalues <-
     trimws(unlist(strsplit(readLines(n = 1, ok = FALSE), split = ",")))
@@ -138,31 +166,7 @@ if(filtermode=="1"){
   filtermode <- "dall"
 }
 
-# --------- THIS LOOP IS ONLY NEEDED IN OUR SETTINGS ----------
-# For each empty cell, we fill it with its upper cell value. This is due to the source data
-# having been grouped by date. When exporting excel data to csv, the lower grouped data values are lost.
-#cont <- list()
-#for (j in 1:pos_discharge)
-#  cont[[j]]<-vector()
 
-cont <- 0
-print("Filling empty cells if found:")
-for (i in 1:nrow(mydata))
-  for (j in 1:pos_discharge)
-    if (is.na(mydata[i, j]) | mydata[i, j] == "") {
-      if (i > 1){
-        mydata[i, j] <- mydata[i-1, j]
-        cont <- cont + 1
-        cat(".")
-        #print(paste("columna modificada",names(mydata)[j],sep=" "))
-        #cont[[j]] <- c(cont[[j]],i)
-      }
-    }
-cat("\n")
-print(paste(cont, "cells have been filled with upper value."))
-#for (i in 1:pos_discharge)
-#  print(paste(cont[i], names(mydata)[i], "cells have been filled with upper row."))
-#setdiff(cont[[1]],cont[[8]])
 
 # Create a new column age if pos_age is NA
 if(is.na(pos_age)){
@@ -198,6 +202,13 @@ if(intervalo == "L"){
  agefilter <- paste("between", umbral1, "and", umbral2, sep="")
 }else{
  agefilter<-"allages"
+}
+
+# -------------- Define the prevalence threshold (percentage) --------------
+print("Select prevalence threshold to filter you data or press ENTER for default value (2):")
+threshold_prev <- as.numeric(readLines(n=1, ok=FALSE))
+if (is.na(threshold_prev)){
+  threshold_prev <- 2
 }
 
 # -------- Define variables that we do not want to consider when calculating distances (similarity) ---------

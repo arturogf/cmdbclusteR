@@ -6,12 +6,6 @@ if(input_type == "PHEWAS"){
   remove(myphewas)
 }
 
-# -------------- Define the prevalence threshold (percentage) --------------
-print("Select prevalence threshold to filter you data or press ENTER for default value (2):")
-threshold_prev <- as.numeric(readLines(n=1, ok=FALSE))
-if (is.na(threshold_prev)){
-  threshold_prev <- 2
-}
 
 num_episodes <- nrow(mydata)
 
@@ -120,4 +114,4 @@ fout <- file.path(directory, "data/processed", nombre_generado)
 write.table(prevalentes,fout,FALSE,sep=";",row.names = FALSE, fileEncoding = "UTF-8",dec=",")
 
 remove(tabla)
-source(file.path(directory, "/R/asignaclusters.R"))
+source(file.path(directory, "/R/asignaclusters2.R"))
