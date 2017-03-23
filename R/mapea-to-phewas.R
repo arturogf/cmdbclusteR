@@ -59,7 +59,7 @@ remapped <- vector()
 names <- vector()
 for (i in 1:ncol(nomapeo)){
   if(nomapeo["porcentaje",i] >= threshold_prev){
-    dataph[[names(nomapeo)[i]]] <- mydata[,i]
+    dataph[[names(nomapeo)[i]]] <- mydata[,names(nomapeo)[i]]
     remapped <- c(remapped, i)
     names <- c(names, names(nomapeo)[i])
     print(paste("ICD9 code", names(nomapeo)[i], 
