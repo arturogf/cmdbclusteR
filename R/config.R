@@ -27,3 +27,4 @@ print("A window will pop up to select folder where cmbdclusteR was downloaded to
 directory <- tk_choose.dir(default="", caption="Select folder where cmbdclusteR-master was downloaded to")
 
 source(file.path(directory, "/R/declaracion.R"))
+#endfile
