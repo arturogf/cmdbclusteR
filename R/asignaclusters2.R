@@ -6,16 +6,17 @@ source(file.path(directory, "/R/funciones.R"))
 source(file.path(directory, "/R/ordiplot.R"))
 
 # Define num of clusters
-# print("Select number of clusters desired or press ENTER for default value (30):")
-# num_clusters <- as.numeric(readLines(n=1, ok=FALSE))
-# if (is.na(num_clusters)){
-#   num_clusters <- 30
-# }
+print("Select number of clusters desired or press ENTER for default value (30):")
+num_clusters <- as.numeric(readLines(n=1, ok=FALSE))
+if (is.na(num_clusters)){
+  num_clusters <- 30
+}
 # Define num of bootstraping iterations
 print("Select number of bootstraping iterations desired or press ENTER for default value (500):")
 num_bootstrap <- as.numeric(readLines(n=1, ok=FALSE))
 if (is.na(num_bootstrap)){
   num_bootstrap <- 500
+  
 }
 itfilter <- paste("eclust", num_bootstrap, "it", sep="")
 # Define threshold for intra-cluster contribution that I want to show in final output
@@ -37,6 +38,8 @@ codes_to_drop<-c("253.7","276.12")
 # and the rows with all columns==0 as well as duplicated rows
 output <- subsetPhewasVars(mydata, nozero=TRUE, dupli=FALSE, codes_to_drop, pos_first_field)
 parcial <- as.data.frame(output[[1]])
+unlink(paste(directory,'/R/parcial.RData',sep = ""))
+save(parcial, file= paste(directory,'/R/parcial.RData',sep = ""))
 mycopy <- as.data.frame(output[[2]])
 remove(output)
 
@@ -81,7 +84,8 @@ nmethod <- as.integer(readLines(n=1, ok=FALSE))
 if (is.na(nmethod)){
   nmethod <- 2
 }
-distancefilter <- paste("d", nmethod, sep="")
+# distancefilter <- paste("d", nmethod, sep="")
+distancefilter = "euclidean"
 
 #distance_measure <- dist.binary(mij, method=nmethod)
 
@@ -93,15 +97,16 @@ library(clustsig)
 
 
 # Identify the distance to use in simprof
-d <- function(X) ade4::dist.binary(X, method = nmethod)
+# d <- function(X) ade4::dist.binary(X, method = nmethod)
 
-#con esto funciona muy bien sin tener que quitar ninguna cosa, salvo hipo y siadh
+# con esto funciona muy bien sin tener que quitar ninguna cosa, salvo hipo y siadh
 library(factoextra)
-res.km <- eclust(mij, "agnes", nboot = num_bootstrap,k=NULL,hc_metric="binary")
+res.km <- eclust(mij, "agnes",nboot = num_bootstrap, k=6, hc_metric="euclidean")
 
 library(fpc)
 library(prabclus)
 library(cluster)
+library(qgraph)
 
 #create a file to save output data
 if (!file.exists(file.path(directory, "data/output"))){
@@ -109,12 +114,15 @@ if (!file.exists(file.path(directory, "data/output"))){
 }
 
 # -------- define output files --------
-clusterfilter <- "agnes-binary" #REVISION, pedir por pantalla
+clusterfilter <- "agnes-k6" #REVISION, pedir por pantalla
 nombre_generado <- paste(substring(nombre_generado, 1, nchar(nombre_generado)-4), distancefilter, clusterfilter, itfilter, sep="-")
 pdffile <- file.path(directory, "data/output", paste(nombre_generado, ".pdf", sep=""))
 ordifile <- file.path(directory, "data/output", paste(nombre_generado, "-ordiplot.pdf", sep=""))
 fclusters <- file.path(directory, "data/output", paste(nombre_generado, ".csv", sep=""))
 fstats <- file.path(directory, "data/output", paste(nombre_generado, "-stats.csv", sep=""))
+fcomp <- file.path(directory, "data/output", paste(nombre_generado, "-comp.csv", sep=""))
+fcomp2 <- file.path(directory, "data/output", paste(nombre_generado, "-comp2.csv", sep=""))
+fcomp3 <- file.path(directory, "data/output", paste(nombre_generado, "-comp3.csv", sep=""))
 
 # plot dendogram and red line for cut-off height h
 #pdf(pdffile)
@@ -142,7 +150,7 @@ salida$cluster <- res.km$cluster
 
 clusters <- list()
 superan <- list()
-statsclusters <- read.table(text = "",col.names = names(salida), as.is = TRUE, check.names = FALSE)
+statsclusters <- read.table(text = "", col.names = names(salida), as.is = TRUE, check.names = FALSE)
 
 for (i in 1:num_clusters) {
   
@@ -278,6 +286,21 @@ pos_cluster = which(names(salida)=="cluster")
 #Coment this line if you don´t want the boxplot of length of stay
 #source(file.path(directory, "/R/Boxplot.R"))
 
+save(parcial, file= paste(directory,'/R/statsclusters.RData',sep = ""))
+
+load("Graph_pcor.RData")
+load("Graph_lasso.RData")
+load("Graph_Ising2.RData")  
+
+comp<-compare_pcor_agnes(superan,statsclusters)
+comp2<-compare_lasso_agnes(superan,statsclusters)
+comp3<-compare_Ising2_agnes(superan,statsclusters)
+
+# We write the file with all the statitics per cluster
+write.table(comp,fcomp,FALSE,sep=";",row.names = FALSE, fileEncoding = "UTF-8",dec=",")
+write.table(comp2,fcomp2,FALSE,sep=";",row.names = FALSE, fileEncoding = "UTF-8",dec=",")
+write.table(comp3,fcomp3,FALSE,sep=";",row.names = FALSE, fileEncoding = "UTF-8",dec=",")
+
 # We write the file with all the statitics per cluster
 write.table(salida,fclusters,FALSE,sep=";",row.names = FALSE, fileEncoding = "UTF-8",dec=",")
 
@@ -291,7 +314,10 @@ for (i in 1:num_clusters) {
   #print(paste("i: ",statsclusters[i + 1, ncol(clusters[[i]]) + 2]))
 }
 
-# we create two different dataframes to be able to convert the 2nd to numeric        
+# we create two different dataframes to be able to convert the 2nd to numeric 
+unlink(paste(directory,'/R/statsclusters.RData',sep = ""))
+save(parcial, file= paste(directory,'/R/statsclusters.RData',sep = ""))
+
 statsclusters1<-statsclusters[1,]
 statsclusters2<-statsclusters[2:nrow(statsclusters),]
 statsclusters2[,1:(ncol(statsclusters2)-3)]<-sapply(statsclusters2[,1:(ncol(statsclusters2)-3)], as.numeric)
@@ -302,3 +328,17 @@ write.table(statsclusters2,fstats,append=TRUE,sep=";",row.names = FALSE, col.nam
 
 #Coment this line if you don´t want the histograms for each cluster and the heatmap of GRD.
 source(file.path(directory, "/R/GRD_hist.R"))
+
+
+## RmarkDown, network analysis
+# Select whether you want to execute network analysis or not
+print("Write Y to execute network analysis or write N to finish the code execution. Please note that this analysis may take a long time (+15')")
+optionnet <- readLines(n=1, ok=FALSE)
+
+if (optionnet == "Y"){
+  input_type <- "network"
+  source(file.path(directory, "/R/render.R"))
+}
+
+
+

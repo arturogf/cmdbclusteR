@@ -1,0 +1,368 @@
+---
+title: "Partial Correlation Network"
+output:
+  word_document: default
+  pdf_document: default
+  html_document: default
+---
+<style type="text/css">
+
+body{ /* Normal  */
+      font-size: 12px;
+  }
+td {  /* Table  */
+  font-size: 10px;
+}
+
+h1.title {
+  font-size: 38px;
+  color: DarkRed;
+}
+h1 { /* Header 1 */
+  font-size: 28px;
+  color: DarkBlue;
+}
+h2 { /* Header 2 */
+    font-size: 22px;
+  color: DarkBlue;
+}
+h3 { /* Header 3 */
+  font-size: 18px;
+  font-family: "Times New Roman", Times, serif;
+  color: DarkBlue;
+}
+code.r{ /* Code block */
+    font-size: 10px;
+}
+pre { /* Code block - determines code spacing between lines */
+    font-size: 10px;
+}
+</style>
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE)
+
+getwd()
+
+load(file = 'parcial.RData')
+load(file = 'statsclusters.RData')
+
+set.seed(123)
+
+```
+
+## Description
+
+In the following graphs, each node represents a Phewas Code (>2% prevalence in our dataset) and associations between nodes are represented as edges. Association show unregulated partial correlations. For layout, codes with less strengths and less connections are placed further apart and those with more and/or stronger connections are placed closer to each other.
+
+```{r, warning=FALSE}
+library(qgraph)
+library(igraph)
+
+corMat <- cor(parcial, use = "pairwise.complete.obs") # Correlate data
+
+Names<- statsclusters[1,1:(ncol(statsclusters)-3)]
+# Unregularized partial correlation network
+Graph_pcor <-
+  qgraph(
+    corMat,
+    graph = "pcor",
+    layout = "spring",
+    threshold = "bonferroni",
+    sampleSize = nrow(parcial),
+    alpha = 0.05,
+    vsize = 4,
+    label.scale = TRUE,
+    label.prop = 0.9,
+    label.norm = "OOOO",
+    labels = row.names(corMat),
+    legend = FALSE,
+    #legend.cex = 0.3,
+    nodeNames = Names,
+    palette="rainbow"
+  )
+
+# this code construct the connected components of the graph in list cluslabels
+ig<-as.igraph(Graph_pcor, attributes = TRUE)
+cl<-clusters(ig)
+pos<-which(cl$csize>1)
+
+clus<-list()
+cluslabels<-list()
+
+for (i in 1:length(pos)) {
+  clus[[i]]<-which(cl$membership==pos[i])
+  cluslabels[[i]]<-V(ig)$label[clus[[i]]]
+}
+
+Grnames=c(rep("Other",ncol(parcial)))
+for (i in 1:length(cluslabels)) {
+  for (j in 1:length(cluslabels[[i]])) {
+    pos<-which(colnames(parcial)==cluslabels[[i]][j])
+    Grnames[pos]<-paste("cluster",i,sep=" ")
+  }
+}
+```
+
+```{r, warning=FALSE}
+# Unregularized partial correlation network
+Graph_pcor <-
+  qgraph(
+    corMat,
+    graph = "pcor",
+    layout = "spring",
+    threshold = "bonferroni",
+    sampleSize = nrow(parcial),
+    alpha = 0.05,
+    vsize = 4,
+    label.scale = TRUE,
+    label.prop = 0.9,
+    label.norm = "OOOO",
+    labels = row.names(corMat),
+    legend = TRUE,
+    legend.cex = 0.4,
+    legend.mode="groups",
+    #GLratio=0.8,
+    #layoutScale=c(1,4),
+    nodeNames = Names,
+    palette="rainbow", 
+    groups=Grnames
+    )
+
+n<-vector()
+for (i in 1:ncol(Names))
+  n<-c(n,paste(Names[1,i],"(",rownames(corMat)[i],")",sep=""))
+
+d<-data.frame(PhewasCode=n,cluster=Grnames)
+#d$meaning<-n
+
+##ordenamos
+leyenda<-d[order(d$cluster),]
+
+#guardamos
+save(Graph_pcor, file= paste(directory,'/R/Graph_pcor.RData',sep = ""))
+
+##imprimimos
+library(printr) 
+knitr::kable(leyenda, caption = 'legend for the clustered correlation network')
+```
+
+
+## Estimation of a regularized PCN using LASSO (tuning=0.50) 
+```{r, warning=FALSE}
+set.seed(123)
+Graph_lasso <-
+  qgraph(
+    corMat,
+    graph = "glasso",
+    layout = "spring",
+    tuning = 0.50,
+    sampleSize = nrow(parcial),
+    vsize = 4,
+    label.scale = TRUE,
+    label.prop = 0.9,
+    label.norm = "OOOO",
+    labels = row.names(corMat),
+    legend = FALSE,
+    legend.cex = 0.3,
+    nodeNames = Names
+    )
+
+
+# this code construct the connected components of the graph in list cluslabels
+ig<-as.igraph(Graph_lasso, attributes = TRUE)
+cl<-clusters(ig)
+pos<-which(cl$csize>1)
+
+clus<-list()
+cluslabels<-list()
+
+for (i in 1:length(pos)) {
+  clus[[i]]<-which(cl$membership==pos[i])
+  cluslabels[[i]]<-V(ig)$label[clus[[i]]]
+}
+
+Grnames=c(rep("Other",ncol(parcial)))
+for (i in 1:length(cluslabels)) {
+  for (j in 1:length(cluslabels[[i]])) {
+    pos<-which(colnames(parcial)==cluslabels[[i]][j])
+    Grnames[pos]<-paste("cluster",i,sep=" ")
+  }
+}
+set.seed(123)
+Graph_lasso <-
+  qgraph(
+    corMat,
+    graph = "glasso",
+    layout = "spring",
+    tuning = 0.50,
+    sampleSize = nrow(parcial),
+    vsize = 4,
+    label.scale = TRUE,
+    label.prop = 0.9,
+    label.norm = "OOOO",
+    labels = row.names(corMat),
+    legend = TRUE,
+    legend.mode="groups",
+    legend.cex = 0.3,
+    nodeNames = Names,
+    palette="rainbow",
+    groups=Grnames
+    )
+
+n<-vector()
+for (i in 1:ncol(Names))
+  n<-c(n,paste(Names[1,i],"(",rownames(corMat)[i],")",sep=""))
+
+d<-data.frame(PhewasCode=n,cluster=Grnames)
+#d$meaning<-n
+
+##ordenamos
+leyenda<-d[order(d$cluster),]
+
+#guardamos
+save(Graph_lasso, file= paste(directory,'/R/Graph_lasso.RData',sep = ""))
+
+##imprimimos
+library(printr) 
+knitr::kable(leyenda, caption = 'legend for the clustered correlation network LASSO')
+```
+
+##This execution removes hipertension (401.1) and use Ising network estimation
+```{r, warning=FALSE}
+# Si queremos hacerlo con datos binarios. Después de esto habría que quitar la hipertensión (col.41)
+library("bootnet")
+Data_binary <- na.omit(parcial)
+for (i in 1:ncol(Data_binary)){
+  Data_binary[,i] <- 1 * (Data_binary[,i] > median(Data_binary[,i]))
+}
+
+#remove hipertension
+Data_binary[,"401.1"]<-NULL
+labels_bin<-row.names(corMat)
+labels_bin<-labels_bin [! labels_bin %in% "401.1"]
+names_bin<-Names
+names_bin[,"401.1"]<-NULL
+
+#Regularized Ising network estimation. LASSO regularization and EBIC model selection:
+
+library("IsingFit")
+Res <- IsingFit(as.matrix(Data_binary),family='binomial', gamma = 0.25, plot=FALSE,progressbar = FALSE)
+Graph_Ising2 <- qgraph(
+  Res$weiadj,
+  layout = "spring",
+  vsize = 4,
+  label.scale = TRUE,
+  label.prop = 0.9,
+  label.norm = "OOOO",
+  labels = labels_bin ,
+  legend = FALSE,
+  legend.cex = 0.4,
+  legend.mode="groups",
+  nodeNames = names_bin,
+  palette="pastel" 
+  #groups=Grnames
+  )
+
+# this code construct the connected components of the graph in list cluslabels
+ig<-as.igraph(Graph_Ising2, attributes = TRUE)
+cl<-clusters(ig)
+pos<-which(cl$csize>1)
+
+clus<-list()
+cluslabels<-list()
+
+for (i in 1:length(pos)) {
+  clus[[i]]<-which(cl$membership==pos[i])
+  cluslabels[[i]]<-V(ig)$label[clus[[i]]]
+}
+
+Grnames<-c(rep("Other",ncol(Data_binary)))
+for (i in 1:length(cluslabels)) {
+  for (j in 1:length(cluslabels[[i]])) {
+    pos<-which(colnames(Data_binary)==cluslabels[[i]][j])
+    Grnames[pos]<-paste("cluster",i,sep=" ")
+  }
+}
+
+Graph_Ising2 <- qgraph(
+  Res$weiadj,
+  layout = "spring",
+  vsize = 4,
+  label.scale = TRUE,
+  label.prop = 0.9,
+  label.norm = "OOOO",
+  labels = labels_bin ,
+  legend = TRUE,
+  legend.cex = 0.4,
+  legend.mode="groups",
+  nodeNames = names_bin,
+  palette="pastel",
+  groups=Grnames
+  )
+
+
+n<-vector()
+for (i in 1:ncol(names_bin))
+  n<-c(n,paste(names_bin[1,i],"(",rownames(Data_binary)[i],")",sep=""))
+
+d<-data.frame(PhewasCode=n,cluster=Grnames)
+#d$meaning<-n
+
+##ordenamos
+leyenda<-d[order(d$cluster),]
+
+#guardamos
+save(Graph_Ising2, file= paste(directory,'/R/Graph_Ising2.RData',sep = ""))
+
+##imprimimos
+library(printr) 
+knitr::kable(leyenda, caption = 'legend for the clustered correlation network LASSO/EBIC without hipertension')
+
+```
+
+```{r, warning=FALSE}
+#--------
+# centrality indices
+centRes <- centrality(Graph_lasso)
+
+# Node strength (degree):
+centRes$OutDegree # Or InDegree, it's the same in unweighted networks
+
+o<-sort(centRes$OutDegree,decreasing = TRUE)[1:20]
+cbind(t(statsclusters[1,names(o)]),as.numeric(o))
+
+# Closeness:
+centRes$Closeness
+
+b<-sort(centRes$Closeness,decreasing = TRUE)[1:20]
+cbind(t(statsclusters[1,names(b)]),as.numeric(b))
+      
+# Betweenness:
+centRes$Betweenness
+
+# print biggest betweenness
+a<-sort(centRes$Betweenness,decreasing = TRUE)[1:20]
+cbind(t(statsclusters[1,names(a)]),as.numeric(a))
+
+centralityPlot(Graph_lasso)
+
+```
+
+# Comparing PCOR and LASSO
+```{r, warning=FALSE}
+Layout <- averageLayout(Graph_pcor,Graph_lasso)
+layout(t(1:2))
+qgraph(corMat, graph = "pcor", layout = Layout, threshold = "bonferroni",
+       sampleSize = nrow(parcial), minimum = 0,
+       cut = 0.15, maximum = 1, details = TRUE,
+       esize = 20, title = "Partial correlations")
+
+qgraph(corMat, graph = "glasso", layout = Layout, tuning = 0.3,
+       sampleSize = nrow(parcial), minimum = 0,
+       cut = 0.15, maximum = 1, details = TRUE,
+       esize = 20, title = "LASSO regularization")
+
+layout(1)
+```
+
