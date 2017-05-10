@@ -28,8 +28,12 @@ remove(prevalentes)
 # we suppose that first column with ICD9 separated codes is the following to Dx.Todos
 pos_first_field <- pos_first_ICD9
 
-# We subset the feature matrix, dropping the selected variables to remove and the rows with all columns==0
-output <- subsetPhewasVars(mydata, TRUE, codes_to_drop, pos_first_field)
+codes_to_drop<-c("253.7","276.12","401.1","250.2","272.11","272.1","318")
+#codes_to_drop<-c("")
+
+# We subset the feature matrix, dropping the selected variables to remove 
+# and the rows with all columns==0 as well as duplicated rows
+output <- subsetPhewasVars(mydata, nozero=TRUE, dupli=FALSE, codes_to_drop, pos_first_field)
 parcial <- as.data.frame(output[[1]])
 mycopy <- as.data.frame(output[[2]])
 remove(output)
@@ -87,6 +91,9 @@ library(clustsig)
 
 # Identify the distance to use in simprof
 d <- function(X) ade4::dist.binary(X, method = nmethod)
+
+
+set.seed(123)
 
 # --- here we have to define which clustering operations to perform, including method (ward, single, etc.) ---
 # Carry out the similarity profile analysis with 50 bootstrapping iterations

@@ -54,7 +54,7 @@ fout <- file.path(directory, "data/processed", nombre_generado)
 write.table(mydata, fout, FALSE, sep=";", row.names = FALSE)
 
 # Select whether you want to map data to PHEWAS or not
-print("Write Y to map data to PheWAS code or press ENTER to continue:")
+print("Write Y to map data to PheWAS code or write N to continue with ICD9 codes:")
 optionmap <- readLines(n=1, ok=FALSE)
 
 if (optionmap == "Y"){

@@ -144,3 +144,165 @@ fillSignificant<-function(salida,significantclusters) {
   
   return (salida$significant)
 }
+
+# Comparamos los clusters obtenidos con network_analysis con los obtenidos por hierarchical clustering
+## -----pcor-----
+compare_pcor_agnes<-function(superan,stats) {
+
+    k<-NULL
+  for (i in 1:length(superan))
+    k<-c(k,paste("C_h",i,sep=""))
+  
+  ddd<-data.frame(k)
+  
+  # Lista de valores para los 11 clusters con alpha=0.05
+  # cr<-list()
+  # cr[[1]]<-c("800.1", "285.1")
+  # cr[[2]]<-c("433.31", "571.5", "1010", "174.11")
+  # cr[[3]]<-c("743.11", "743.21")
+  # cr[[4]]<-c("261.2", "260", "276.5", "426.91")
+  # cr[[5]]<-c("V45.77", "V88.01")
+  # cr[[6]]<-c("41.9", "41.4", "591", "41")
+  # cr[[7]]<-c("994.2", "509.1", "509.8", "496.21", "519.8", "600", "599.2")
+  # cr[[8]]<-c("198.4", "198.6", "165.1", "198.5", "198.1", "198.2", "153.2")
+  # cr[[9]]<-c("286.2", "427.21", "427.3", "979", "428.1", "585.1", "585.3", "401.22")
+  # cr[[10]]<-c("411.2", "411.4")
+  # cr[[11]]<-c("318", "317")
+  
+ 
+  ## Graph_pcor
+   library(igraph)
+  
+  ig<-as.igraph(Graph_pcor, attributes = TRUE)
+  cl<-clusters(ig)
+  pos<-which(cl$csize>1)
+  
+  clus<-list()
+  cr<-list()
+  
+  for (i in 1:length(pos)) {
+    clus[[i]]<-which(cl$membership==pos[i])
+    cr[[i]]<-V(ig)$label[clus[[i]]]
+  }
+  
+ 
+    for (k in 1:length(cr)) {
+    for (i in 1:length(superan)) {
+      print(paste("cluster",i,sep=" "))
+      contrib<-""
+      for (j in 1:length(cr[[k]])) {
+        contrib<-paste(contrib,cr[[k]][j],"(",round(superan[[i]][cr[[k]][j]],1),"), ",sep="")
+      }
+      contrib<-substr(contrib,1,(nchar(contrib)-2))
+      nomcolum<-paste("cr",as.character(k),sep="")
+      ddd[i,nomcolum]<-contrib
+    }
+    #add row with meaning for codes of column variables
+    meaning<-""
+    for (h in 1:length(cr[[k]])){
+      meaning<-paste(meaning, cr[[k]][h],"('",stats[1,cr[[k]][h]],"')")
+    }
+    ddd[length(superan)+1,nomcolum]<-meaning
+  }
+  
+  return(ddd)
+}
+
+
+
+## -----lasso-----
+compare_lasso_agnes<-function(superan,stats) {
+
+  k<-NULL
+  for (i in 1:length(superan))
+    k<-c(k,paste("C_h",i,sep=""))
+  
+  ddd<-data.frame(k)
+  
+  
+  ## Graph_lasso
+  library(igraph)
+
+  ig<-as.igraph(Graph_lasso, attributes = TRUE)
+  cl<-clusters(ig)
+  pos<-which(cl$csize>1)
+
+  clus<-list()
+  cr<-list()
+
+  for (i in 1:length(pos)) {
+    clus[[i]]<-which(cl$membership==pos[i])
+    cr[[i]]<-V(ig)$label[clus[[i]]]
+  }
+  
+  
+  for (k in 1:length(cr)) {
+    for (i in 1:length(superan)) {
+      print(paste("cluster",i,sep=" "))
+      contrib<-""
+      for (j in 1:length(cr[[k]])) {
+        contrib<-paste(contrib,cr[[k]][j],"(",round(superan[[i]][cr[[k]][j]],1),"), ",sep="")
+      }
+      contrib<-substr(contrib,1,(nchar(contrib)-2))
+      nomcolum<-paste("cr",as.character(k),sep="")
+      ddd[i,nomcolum]<-contrib
+    }
+    #add row with meaning for codes of column variables
+    meaning<-""
+    for (h in 1:length(cr[[k]])){
+      meaning<-paste(meaning, cr[[k]][h],"('",stats[1,cr[[k]][h]],"')")
+    }
+    ddd[length(superan)+1,nomcolum]<-meaning
+  }
+  
+  return(ddd)
+}
+
+
+## -----Ising2-----
+compare_Ising2_agnes<-function(superan,stats) {
+
+    k<-NULL
+  for (i in 1:length(superan))
+    k<-c(k,paste("C_h",i,sep=""))
+  
+  ddd<-data.frame(k)
+  
+
+  ## Graph_Ising2
+  library(igraph)
+
+  ig<-as.igraph(Graph_Ising2, attributes = TRUE)
+  cl<-clusters(ig)
+  pos<-which(cl$csize>1)
+
+  clus<-list()
+  cr<-list()
+
+  for (i in 1:length(pos)) {
+    clus[[i]]<-which(cl$membership==pos[i])
+    cr[[i]]<-V(ig)$label[clus[[i]]]
+  }
+  
+  
+  for (k in 1:length(cr)) {
+    for (i in 1:length(superan)) {
+      print(paste("cluster",i,sep=" "))
+      contrib<-""
+      for (j in 1:length(cr[[k]])) {
+        contrib<-paste(contrib,cr[[k]][j],"(",round(superan[[i]][cr[[k]][j]],1),"), ",sep="")
+      }
+      contrib<-substr(contrib,1,(nchar(contrib)-2))
+      nomcolum<-paste("cr",as.character(k),sep="")
+      ddd[i,nomcolum]<-contrib
+    }
+    #add row with meaning for codes of column variables
+    meaning<-""
+    for (h in 1:length(cr[[k]])){
+      meaning<-paste(meaning, cr[[k]][h],"('",stats[1,cr[[k]][h]],"')")
+    }
+    ddd[length(superan)+1,nomcolum]<-meaning
+  }
+  
+  return(ddd)
+}
